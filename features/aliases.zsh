@@ -1,3 +1,6 @@
+# Core
+alias dotfiles='/usr/bin/git --git-dir=$ZDOTDIR --work-tree=$ZDOTDIR'
+
 # Node
 alias ni="npm install"
 alias nd="npm run dev"
@@ -45,6 +48,10 @@ google(){
   open "https://google.com/search?q=$1"
 }
 
+duck(){
+  open "https://duckduckgo.com/?q=$1"
+}
+
 # Meassure zsh exec time
 timezsh(){
   shell=${1-$SHELL}
@@ -54,10 +61,10 @@ timezsh(){
 # Upload dotfiles to cloud
 upload-dotfiles(){
   echo "Uploading dotfiles..."
-  cd $ZDOTDIR
-  git add .
-  git commit -m "dotfiles updated $(date +%d-%m-%y)"
-  git push
-  cz
+  dotfiles add .
+  dotfiles commit -m "dotfiles updated $(date +%d-%m-%y)"
+  dotfiles push
   echo "Done."
 }
+
+
