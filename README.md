@@ -51,7 +51,7 @@ Alternatively, you can manually execute the steps below:
 ```sh
 # Install prerequisites
 sudo apt update
-sudo apt install zsh git curl nano
+sudo apt install zsh git curl nano unzip
 
 # Install fnm (Node version manager)
 curl -fsSL https://fnm.vercel.app/install | bash
@@ -69,7 +69,7 @@ fi
 chsh -s $(which zsh)
 
 # Install Antibody
-curl -sfL git.io/antibody | sh -s - -b /usr/local/bin
+curl -sfL git.io/antibody | sudo sh -s - -b /usr/local/bin
 
 # Copy and configure environment
 cp .env.example .env

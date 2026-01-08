@@ -39,11 +39,11 @@ alias open="xdg-open 2>/dev/null"
 alias sql="$HOME/sqlcl/bin/sql"
 
 alias reload="exec zsh"
-alias bundle-plugins="antibody bundle < $ZDOTDIR/features/plugins.txt > $ZDOTDIR/features/plugins.zsh && reload"
+alias bundle-plugins="antibody bundle < $ZDOTDIR/modules/plugins.txt > $ZDOTDIR/modules/plugins.zsh && reload"
 
 alias zsh-config="nano $ZDOTDIR/.zshrc && reload"
-alias zsh-aliases="nano $ZDOTDIR/features/aliases.zsh && reload"
-alias zsh-plugins="nano $ZDOTDIR/features/plugins.zsh && bundle-plugins"
+alias zsh-aliases="nano $ZDOTDIR/modules/aliases.zsh && reload"
+alias zsh-plugins="nano $ZDOTDIR/modules/plugins.zsh && bundle-plugins"
 
 # Move the prompt to the bottom of the screen
 move_to_bottom() {

@@ -1,5 +1,5 @@
 sudo apt update
-sudo apt install zsh git curl nano
+sudo apt install zsh git curl nano unzip
 
 curl -fsSL https://fnm.vercel.app/install | bash
 
@@ -13,7 +13,7 @@ fi
 
 chsh -s $(which zsh)
 
-curl -sfL git.io/antibody | sh -s - -b /usr/local/bin
+curl -sfL git.io/antibody | sudo sh -s - -b /usr/local/bin
 
 cp .env.example .env
 
