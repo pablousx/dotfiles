@@ -1,11 +1,17 @@
 # Core
 alias dotfiles='/usr/bin/git --git-dir=$ZDOTDIR --work-tree=$ZDOTDIR'
 
-# Node
+# Npm
 alias ni="npm install"
 alias nd="npm run dev"
 alias nb="npm run build"
 alias ns="npm run start"
+
+# Pnpm
+alias pi="pnpm install"
+alias pd="pnpm run dev"
+alias pb="pnpm run build"
+alias ps="pnpm run start"
 
 # Yarn
 alias yi="yarn install"
@@ -33,10 +39,11 @@ alias open="xdg-open 2>/dev/null"
 alias sql="$HOME/sqlcl/bin/sql"
 
 alias reload="exec zsh"
-alias bundle-plugins="antibody bundle < $ZDOTDIR/features/.zsh_plugins.txt > $ZDOTDIR/features/.zsh_plugins.sh && reload"
+alias bundle-plugins="antibody bundle < $ZDOTDIR/features/plugins.txt > $ZDOTDIR/features/plugins.zsh && reload"
+
 alias zsh-config="nano $ZDOTDIR/.zshrc && reload"
 alias zsh-aliases="nano $ZDOTDIR/features/aliases.zsh && reload"
-alias zsh-plugins="nano $ZDOTDIR/features/.zsh_plugins.txt && bundle-plugins"
+alias zsh-plugins="nano $ZDOTDIR/features/plugins.zsh && bundle-plugins"
 
 # Move the prompt to the bottom of the screen
 move_to_bottom() {
@@ -66,5 +73,3 @@ upload-dotfiles(){
   dotfiles push
   echo "Done."
 }
-
-

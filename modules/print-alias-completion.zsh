@@ -1,4 +1,3 @@
-
 local cmd_alias=""
 
 alias_for() {
