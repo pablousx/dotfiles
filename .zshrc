@@ -72,18 +72,3 @@ autoload -Uz compinit
 for dump in $ZDOTDIR/.zcompdump(N.mh+24); do
   compinit
 done
-
-# pnpm
-export PNPM_HOME="/home/nandou/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# pnpm end
-
-# fnm
-FNM_PATH="/home/pablousx/.local/share/fnm"
-if [ -d "$FNM_PATH" ]; then
-  export PATH="$FNM_PATH:$PATH"
-  eval "`fnm env`"
-fi
