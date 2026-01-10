@@ -37,13 +37,20 @@ The configuration is split into modular components in `modules`:
 
 The first step is to clone the dotfiles repository:
 ```sh
-git clone --bare https://github.com/pablousx/dotfiles.git $HOME/dotfiles
+git clone https://github.com/pablousx/dotfiles.git $HOME/dotfiles && cd $HOME/dotfiles
 ```
 
 Then, run the setup script:
 
 ```sh
-sh setup.sh
+sudo sh setup.sh
+```
+
+This will install node 24.12.0 by default. You can also set the desired version by running:
+
+```sh
+export NODE_VERSION=24.12.0
+sudo sh setup.sh
 ```
 
 Alternatively, you can manually execute the steps below:
@@ -54,22 +61,28 @@ sudo apt update
 sudo apt install zsh git curl nano unzip
 
 # Install fnm (Node version manager)
+NODE_VERSION=${NODE_VERSION:-24.12.0}
 curl -fsSL https://fnm.vercel.app/install | bash
+fnm install $NODE_VERSION
+fnm default $NODE_VERSION
 
 # Configure dotfiles directory
+export ZDOTDIR=$HOME/dotfiles
+
 touch $HOME/.zshrc
-if ! grep -q "export ZDOTDIR=~/dotfiles" $HOME/.zshrc; then
-  echo "export ZDOTDIR=~/dotfiles" >> $HOME/.zshrc
+if ! grep -q "export ZDOTDIR=$ZDOTDIR" $HOME/.zshrc; then
+  echo "export ZDOTDIR=$ZDOTDIR" >> $HOME/.zshrc
 fi
-if ! grep -q "source $ZDOTDIR/.zshrc" $HOME/.zshrc; then
-  echo "source $ZDOTDIR/.zshrc" >> $HOME/.zshrc
+if ! grep -q "source \$ZDOTDIR/.zshrc" $HOME/.zshrc; then
+  echo "source \$ZDOTDIR/.zshrc" >> $HOME/.zshrc
 fi
 
 # Set ZSH as default shell
 chsh -s $(which zsh)
 
-# Install Antibody
+# Install Antibody and bundle plugins
 curl -sfL git.io/antibody | sudo sh -s - -b /usr/local/bin
+antibody bundle < $ZDOTDIR/modules/plugins.txt > $ZDOTDIR/modules/plugins.zsh && reload
 
 # Copy and configure environment
 cp .env.example .env
