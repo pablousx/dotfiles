@@ -16,14 +16,12 @@ ohmyzsh/ohmyzsh
 # PRODUCTIVITY
 # =============================================================================
 
-# Alias Tips — reminds you of shorter aliases when you type the full command
-djui/alias-tips
+# You Should Use — reminds you of shorter aliases when you type the full command
+MichaelAquilina/zsh-you-should-use
 
 # Sudo — press ESC twice to prepend "sudo" to the current or last command
 ohmyzsh/ohmyzsh path:plugins/sudo
 
-# Clipboard — cross-platform pbcopy/pbpaste (WSL/Linux/macOS aware)
-zpm-zsh/clipboard
 
 # Command Not Found — suggests the apt package to install for unknown commands
 ohmyzsh/ohmyzsh path:plugins/command-not-found
@@ -32,8 +30,6 @@ ohmyzsh/ohmyzsh path:plugins/command-not-found
 # VERSION MANAGERS
 # =============================================================================
 
-# FNM — automatic Node version switching via .nvmrc / .node-version files
-dominik-schwabe/zsh-fnm
 
 # =============================================================================
 # GIT & GITHUB

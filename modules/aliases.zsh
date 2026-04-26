@@ -35,8 +35,14 @@ alias cx="cd .."
 alias cz="cd -"
 alias dev="cd ~/dev"
 alias lc="colorls --sd -A"
-alias open="xdg-open 2>/dev/null"
 alias sql="$HOME/sqlcl/bin/sql"
+
+# WSL / Windows specific
+if grep -qi microsoft /proc/version 2>/dev/null; then
+  alias open="powershell.exe -Command Start"
+else
+  alias open="xdg-open 2>/dev/null"
+fi
 
 alias reload="exec zsh"
 alias bundle-plugins="antidote bundle < $ZDOTDIR/modules/plugins.txt > $ZDOTDIR/modules/plugins.zsh && reload"
