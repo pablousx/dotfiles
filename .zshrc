@@ -6,15 +6,19 @@ export ZSHRC="$ZDOTDIR/.zshrc"
 # SSH Environment Configuration
 source $HOME/.ssh/sync-ssh-env.sh
 
-plugins=(
-  pnpm-shell-completion
-)
-
 # ================= MODULES =================
 
 # Enable or disable modules creating a ./.env file (copy ./.env.example to ./.env)
 if [[ -f $ZDOTDIR/.env ]]; then
   export $(grep -v '^#' $ZDOTDIR/.env | xargs)
+fi
+
+# Optimizing auto-completion
+autoload -Uz compinit
+if [[ -n $ZDOTDIR/.zcompdump(N.mh+24) ]]; then
+  compinit
+else
+  compinit -C
 fi
 
 # ALIASES - Source aliases definition
@@ -26,6 +30,14 @@ fi
 if [[ $DISABLE_PROMPT != true ]]; then
   source $ZDOTDIR/modules/prompt.zsh
 fi
+
+# Loading fzf
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# fzf-tab styles
+zstyle ':completion:*' menu no
+zstyle ':fzf-tab:*' fzf-flags --color=fg:1,fg+:2 --bind=tab:accept
+zstyle ':fzf-tab:*' switch-group '<' '>'
 
 # PLUGINS - Antidote
 if [[ $DISABLE_PLUGINS != true ]]; then
@@ -48,8 +60,6 @@ fi
 # Enable command auto-correction
 ENABLE_CORRECTION="true"
 
-# Loading fzf
-[ -f $ZDOTDIR/.fzf.zsh ] && source $ZDOTDIR/.fzf.zsh
 
 
 # ================= TWEAKS =================
@@ -66,14 +76,6 @@ pastefinish() {
 
 zstyle :bracketed-paste-magic paste-init pasteinit
 zstyle :bracketed-paste-magic paste-finish pastefinish
-
-# Optimizing auto-completion
-autoload -Uz compinit
-if [[ -n $ZDOTDIR/.zcompdump(N.mh+24) ]]; then
-  compinit
-else
-  compinit -C
-fi
 
 # fnm
 FNM_PATH="$HOME/.local/share/fnm"
@@ -96,3 +98,4 @@ eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
 export PATH="$HOME/.opencode/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 . "/home/pablousx/.deno/env"
+

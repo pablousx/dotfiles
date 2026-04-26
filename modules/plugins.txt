@@ -22,6 +22,9 @@ MichaelAquilina/zsh-you-should-use
 # Sudo — press ESC twice to prepend "sudo" to the current or last command
 ohmyzsh/ohmyzsh path:plugins/sudo
 
+# Window Title — dynamically updates the terminal tab title
+olets/zsh-window-title
+
 
 # Command Not Found — suggests the apt package to install for unknown commands
 ohmyzsh/ohmyzsh path:plugins/command-not-found
@@ -44,7 +47,8 @@ ohmyzsh/ohmyzsh path:plugins/gh
 # =============================================================================
 # COMPLETIONS
 # =============================================================================
-
+# fzf-tab — replaces the default completion menu with an fzf dropdown
+Aloxaf/fzf-tab
 # Additional completions — hundreds of extra completion definitions
 zsh-users/zsh-completions
 
