@@ -10,7 +10,7 @@ This dotfiles repository manages a customized ZSH environment with the following
 
 - **Shell**: ZSH with optimized completion system
 - **Prompt**: [Powerlevel10k](https://github.com/romkatv/powerlevel10k) with Pure-style configuration
-- **Plugin Manager**: [Antibody](https://getantibody.github.io/) for fast plugin loading
+- **Plugin Manager**: [Antidote](https://antidote.sh//) for fast plugin loading
 - **Node Version Manager**: [fnm](https://github.com/Schniz/fnm) with automatic version switching
 
 ### Module System
@@ -21,7 +21,7 @@ The configuration is split into modular components in `modules`:
 - `modules/bitwarden-ssh-agent.zsh` - SSH agent integration with Bitwarden
 - `modules/expand-alias.zsh` - Automatic alias expansion in command line
 - `modules/plugins.zsh` - Plugin loader (generated from `modules/plugins.txt`)
-- `modules/plugins.txt` - Plugin definitions for Antibody
+- `modules/plugins.txt` - Plugin definitions for Antidote
 - `modules/print-alias-completion.zsh` - Alias suggestions during completion
 - `modules/prompt.zsh` - Powerlevel10k initialization
 
@@ -36,6 +36,7 @@ The configuration is split into modular components in `modules`:
 ### Installation
 
 The first step is to clone the dotfiles repository:
+
 ```sh
 git clone https://github.com/pablousx/dotfiles.git $HOME/dotfiles && cd $HOME/dotfiles
 ```
@@ -80,9 +81,9 @@ fi
 # Set ZSH as default shell
 chsh -s $(which zsh)
 
-# Install Antibody and bundle plugins
-curl -sfL git.io/antibody | sudo sh -s - -b /usr/local/bin
-antibody bundle < $ZDOTDIR/modules/plugins.txt > $ZDOTDIR/modules/plugins.zsh && reload
+# Install Antidote and bundle plugins
+curl -sfL git.io/antidote | sudo sh -s - -b /usr/local/bin
+antidote bundle < $ZDOTDIR/modules/plugins.txt > $ZDOTDIR/modules/plugins.zsh && reload
 
 # Copy and configure environment
 cp .env.example .env

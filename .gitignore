@@ -2,3 +2,6 @@
 !.env.example
 .zcompdump*
 out/**
+
+# External
+.antidote/

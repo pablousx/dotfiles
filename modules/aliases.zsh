@@ -8,10 +8,10 @@ alias nb="npm run build"
 alias ns="npm run start"
 
 # Pnpm
-alias pi="pnpm install"
-alias pd="pnpm run dev"
-alias pb="pnpm run build"
-alias ps="pnpm run start"
+alias pni="pnpm install"
+alias pnd="pnpm run dev"
+alias pnb="pnpm run build"
+alias pns="pnpm run start"
 
 # Yarn
 alias yi="yarn install"
@@ -39,11 +39,11 @@ alias open="xdg-open 2>/dev/null"
 alias sql="$HOME/sqlcl/bin/sql"
 
 alias reload="exec zsh"
-alias bundle-plugins="antibody bundle < $ZDOTDIR/modules/plugins.txt > $ZDOTDIR/modules/plugins.zsh && reload"
+alias bundle-plugins="antidote bundle < $ZDOTDIR/modules/plugins.txt > $ZDOTDIR/modules/plugins.zsh && reload"
 
 alias zsh-config="nano $ZDOTDIR/.zshrc && reload"
 alias zsh-aliases="nano $ZDOTDIR/modules/aliases.zsh && reload"
-alias zsh-plugins="nano $ZDOTDIR/modules/plugins.zsh && bundle-plugins"
+alias zsh-plugins="nano $ZDOTDIR/modules/plugins.txt && bundle-plugins"
 
 # Move the prompt to the bottom of the screen
 move_to_bottom() {

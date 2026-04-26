@@ -1,9 +1,14 @@
+# Add deno completions to search path
+if [[ ":$FPATH:" != *":/home/pablousx/dotfiles/completions:"* ]]; then export FPATH="/home/pablousx/dotfiles/completions:$FPATH"; fi
 export HOME_ZSHRC="$HOME/.zshrc"
 export ZSHRC="$ZDOTDIR/.zshrc"
 
-if ! grep -Fxq "$BRIDGE_SOURCE" "$HOME_ZSHRC"; then
-    echo "$BRIDGE_SOURCE" >> "$HOME_ZSHRC"
-fi
+# SSH Environment Configuration
+source $HOME/.ssh/sync-ssh-env.sh
+
+plugins=(
+  pnpm-shell-completion
+)
 
 # ================= MODULES =================
 
@@ -22,8 +27,10 @@ if [[ $DISABLE_PROMPT != true ]]; then
   source $ZDOTDIR/modules/prompt.zsh
 fi
 
-# PLUGINS - Antibody
+# PLUGINS - Antidote
 if [[ $DISABLE_PLUGINS != true ]]; then
+  fpath=($ZDOTDIR/.antidote/functions $fpath)
+  autoload -Uz antidote
   source $ZDOTDIR/modules/plugins.zsh
 fi
 
@@ -35,11 +42,6 @@ fi
 # EXPAND ALIAS
 if [[ $DISABLE_EXPAND_ALIAS != true ]]; then
   source $ZDOTDIR/modules/expand-alias.zsh
-fi
-
-# BITWARDEN SSH AGENT BRIDGE
-if [[ $DISABLE_BITWARDEN_SSH_AGENT_BRIDGE != true ]]; then
-  source $ZDOTDIR/modules/bitwarden-ssh-agent.zsh
 fi
 
 # ================= CONFIGURATION =================
@@ -72,3 +74,25 @@ autoload -Uz compinit
 for dump in $ZDOTDIR/.zcompdump(N.mh+24); do
   compinit
 done
+
+# fnm
+FNM_PATH="/home/pablousx/.local/share/fnm"
+if [ -d "$FNM_PATH" ]; then
+  export PATH="$FNM_PATH:$PATH"
+  eval "`fnm env`"
+fi
+
+# pnpm
+export PNPM_HOME="/home/pablousx/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
+
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
+
+# opencode
+export PATH=/home/pablousx/.opencode/bin:$PATH
+export PATH="$HOME/.local/bin:$PATH"
+. "/home/pablousx/.deno/env"

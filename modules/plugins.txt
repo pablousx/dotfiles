@@ -8,12 +8,12 @@ romkatv/powerlevel10k
 ohmyzsh/ohmyzsh
 
 # Functions
-Aloxaf/fzf-tab
+# Aloxaf/fzf-tab
+#g-plane/pnpm-shell-completion
 #desyncr/auto-ls
 djui/alias-tips
 dominik-schwabe/zsh-fnm
 ohmyzsh/ohmyzsh path:plugins/command-not-found
-tom-doerr/zsh_codex
 zpm-zsh/clipboard
 
 # Autocompletions
@@ -28,8 +28,8 @@ ohmyzsh/ohmyzsh path:plugins/ubuntu
 ohmyzsh/ohmyzsh path:plugins/yarn
 
 # Essentials
-zsh-users/zsh-autosuggestions
-zsh-users/zsh-completions
+# zsh-users/zsh-autosuggestions
+# zsh-users/zsh-completions
 zsh-users/zsh-syntax-highlighting
 #zdharma-continuum/fast-syntax-highlighting
 #zdharma/fast-syntax-highlighting

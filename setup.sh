@@ -18,8 +18,9 @@ fi
 
 chsh -s $(which zsh)
 
-curl -sfL git.io/antibody | sudo sh -s - -b /usr/local/bin
-antibody bundle < $ZDOTDIR/modules/plugins.txt > $ZDOTDIR/modules/plugins.zsh && reload
+git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-~}/.antidote
+source ${ZDOTDIR:-~}/.antidote/antidote.zsh
+antidote bundle < $ZDOTDIR/modules/plugins.txt > $ZDOTDIR/modules/plugins.zsh && reload
 
 cp .env.example .env
 
