@@ -13,12 +13,10 @@ if [[ -f $ZDOTDIR/.env ]]; then
   export $(grep -v '^#' $ZDOTDIR/.env | xargs)
 fi
 
-# Optimizing auto-completion
-autoload -Uz compinit
-if [[ -n $ZDOTDIR/.zcompdump(N.mh+24) ]]; then
-  compinit
-else
-  compinit -C
+# Auto-completion — sourced before compinit (plugin calls compinit internally)
+ZSH_AUTOCOMPLETE_CACHE="$HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-marlonrichert-SLASH-zsh-autocomplete"
+if [[ -d "$ZSH_AUTOCOMPLETE_CACHE" ]]; then
+  source "$ZSH_AUTOCOMPLETE_CACHE/zsh-autocomplete.plugin.zsh"
 fi
 
 # ALIASES - Source aliases definition
@@ -98,4 +96,3 @@ eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
 export PATH="$HOME/.opencode/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 . "/home/pablousx/.deno/env"
-

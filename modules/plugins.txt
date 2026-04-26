@@ -13,6 +13,13 @@ romkatv/powerlevel10k
 ohmyzsh/ohmyzsh
 
 # =============================================================================
+# AUTO-COMPLETION (load before compinit — sourced directly in .zshrc)
+# =============================================================================
+
+# Autocomplete — real-time type-ahead completions as you type (no Tab needed)
+marlonrichert/zsh-autocomplete
+
+# =============================================================================
 # PRODUCTIVITY
 # =============================================================================
 
@@ -47,8 +54,10 @@ ohmyzsh/ohmyzsh path:plugins/gh
 # =============================================================================
 # COMPLETIONS
 # =============================================================================
+
 # fzf-tab — replaces the default completion menu with an fzf dropdown
 Aloxaf/fzf-tab
+
 # Additional completions — hundreds of extra completion definitions
 zsh-users/zsh-completions
 
@@ -73,6 +82,9 @@ ohmyzsh/ohmyzsh path:plugins/ubuntu
 # =============================================================================
 # ESSENTIALS — load these last
 # =============================================================================
+
+# Autopair — auto-closes brackets, quotes and other delimiters as you type
+hlissner/zsh-autopair
 
 # Autosuggestions — fish-like inline suggestions from your history as you type
 zsh-users/zsh-autosuggestions
