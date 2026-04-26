@@ -1,5 +1,5 @@
 # Add deno completions to search path
-if [[ ":$FPATH:" != *":/home/pablousx/dotfiles/completions:"* ]]; then export FPATH="/home/pablousx/dotfiles/completions:$FPATH"; fi
+if [[ ":$FPATH:" != *":$ZDOTDIR/completions:"* ]]; then export FPATH="$ZDOTDIR/completions:$FPATH"; fi
 export HOME_ZSHRC="$HOME/.zshrc"
 export ZSHRC="$ZDOTDIR/.zshrc"
 
@@ -51,8 +51,6 @@ ENABLE_CORRECTION="true"
 # Loading fzf
 [ -f $ZDOTDIR/.fzf.zsh ] && source $ZDOTDIR/.fzf.zsh
 
-# source ~/agent-bridge.sh
-eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
 
 # ================= TWEAKS =================
 
@@ -71,19 +69,21 @@ zstyle :bracketed-paste-magic paste-finish pastefinish
 
 # Optimizing auto-completion
 autoload -Uz compinit
-for dump in $ZDOTDIR/.zcompdump(N.mh+24); do
+if [[ -n $ZDOTDIR/.zcompdump(N.mh+24) ]]; then
   compinit
-done
+else
+  compinit -C
+fi
 
 # fnm
-FNM_PATH="/home/pablousx/.local/share/fnm"
+FNM_PATH="$HOME/.local/share/fnm"
 if [ -d "$FNM_PATH" ]; then
   export PATH="$FNM_PATH:$PATH"
-  eval "`fnm env`"
+  eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
 fi
 
 # pnpm
-export PNPM_HOME="/home/pablousx/.local/share/pnpm"
+export PNPM_HOME="$HOME/.local/share/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
@@ -93,6 +93,6 @@ esac
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
 
 # opencode
-export PATH=/home/pablousx/.opencode/bin:$PATH
+export PATH="$HOME/.opencode/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 . "/home/pablousx/.deno/env"

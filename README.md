@@ -44,14 +44,14 @@ git clone https://github.com/pablousx/dotfiles.git $HOME/dotfiles && cd $HOME/do
 Then, run the setup script:
 
 ```sh
-sudo sh setup.sh
+zsh setup.sh
 ```
 
 This will install node 24.12.0 by default. You can also set the desired version by running:
 
 ```sh
 export NODE_VERSION=24.12.0
-sudo sh setup.sh
+zsh setup.sh
 ```
 
 Alternatively, you can manually execute the steps below:
@@ -81,15 +81,15 @@ fi
 # Set ZSH as default shell
 chsh -s $(which zsh)
 
-# Install Antidote and bundle plugins
-curl -sfL git.io/antidote | sudo sh -s - -b /usr/local/bin
-antidote bundle < $ZDOTDIR/modules/plugins.txt > $ZDOTDIR/modules/plugins.zsh && reload
+# Install Antidote
+git clone --depth=1 https://github.com/mattmc3/antidote.git $ZDOTDIR/.antidote
+
+# Bundle plugins
+source $ZDOTDIR/.antidote/antidote.zsh
+antidote bundle < $ZDOTDIR/modules/plugins.txt > $ZDOTDIR/modules/plugins.zsh
 
 # Copy and configure environment
 cp .env.example .env
-
-# Bundle plugins
-zsh-plugins
 
 # Restart terminal
 exec zsh

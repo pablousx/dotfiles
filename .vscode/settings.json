@@ -1,0 +1,18 @@
+{
+  "search.exclude": {
+    "**/.git": true,
+    "**/.antidote": true,
+    "**/.zcompdump*": true,
+    "**/.zsh_history": true,
+    "**/modules/plugins.zsh": true
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.antidote": true,
+    "**/.zcompdump*": true
+  },
+  "files.watcherExclude": {
+    "**/.git": true,
+    "**/.antidote": true
+  }
+}

@@ -1,4 +1,6 @@
 .env
+.zcompdump*
+.zsh_history
 !.env.example
 .zcompdump*
 out/**

@@ -5,8 +5,8 @@ fi
 
 [[ ! -f $ZDOTDIR/.p10k.zsh ]] || source $ZDOTDIR/.p10k.zsh
 
-# Vs code integration
-if [[ "$TERM_PROGRAM" == "vscode" ]]; then
+# Vs code & Windows Terminal integration
+if [[ "$TERM_PROGRAM" == "vscode" || "$WT_SESSION" != "" ]]; then
   POWERLEVEL9K_TERM_SHELL_INTEGRATION=true
 fi
 

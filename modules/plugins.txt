@@ -1,36 +1,82 @@
-# Theme
-romkatv/powerlevel10k
-#spaceship-prompt/spaceship-prompt
-#sindresorhus/pure
-#therealklanni/purity
+# =============================================================================
+# THEME
+# =============================================================================
 
-# Core
+# Powerlevel10k — feature-rich, blazing-fast prompt with instant prompt support
+romkatv/powerlevel10k
+
+# =============================================================================
+# FRAMEWORK
+# =============================================================================
+
+# Oh My Zsh — core library loaded for utility functions and the plugin ecosystem
 ohmyzsh/ohmyzsh
 
-# Functions
-# Aloxaf/fzf-tab
-#g-plane/pnpm-shell-completion
-#desyncr/auto-ls
+# =============================================================================
+# PRODUCTIVITY
+# =============================================================================
+
+# Alias Tips — reminds you of shorter aliases when you type the full command
 djui/alias-tips
-dominik-schwabe/zsh-fnm
-ohmyzsh/ohmyzsh path:plugins/command-not-found
+
+# Sudo — press ESC twice to prepend "sudo" to the current or last command
+ohmyzsh/ohmyzsh path:plugins/sudo
+
+# Clipboard — cross-platform pbcopy/pbpaste (WSL/Linux/macOS aware)
 zpm-zsh/clipboard
 
-# Autocompletions
-docker/cli path:contrib/completion/zsh/_docker
-ohmyzsh/ohmyzsh path:plugins/aws
-ohmyzsh/ohmyzsh path:plugins/copyfile
-ohmyzsh/ohmyzsh path:plugins/gh
+# Command Not Found — suggests the apt package to install for unknown commands
+ohmyzsh/ohmyzsh path:plugins/command-not-found
+
+# =============================================================================
+# VERSION MANAGERS
+# =============================================================================
+
+# FNM — automatic Node version switching via .nvmrc / .node-version files
+dominik-schwabe/zsh-fnm
+
+# =============================================================================
+# GIT & GITHUB
+# =============================================================================
+
+# Git — extensive git aliases (gst, gco, gcm, gp, gl, glog, etc.)
 ohmyzsh/ohmyzsh path:plugins/git
+
+# GitHub CLI — tab completions for the gh command
+ohmyzsh/ohmyzsh path:plugins/gh
+
+# =============================================================================
+# COMPLETIONS
+# =============================================================================
+
+# Additional completions — hundreds of extra completion definitions
+zsh-users/zsh-completions
+
+# Docker — official Docker CLI tab completions
+docker/cli path:contrib/completion/zsh/_docker
+
+# AWS CLI — completions and environment helpers for the aws command
+ohmyzsh/ohmyzsh path:plugins/aws
+
+# Copy file — copyfile <file>: pipes a file's content directly to clipboard
+ohmyzsh/ohmyzsh path:plugins/copyfile
+
+# npm — npm script aliases (npmg, npmS, etc.)
 ohmyzsh/ohmyzsh path:plugins/npm
-ohmyzsh/ohmyzsh path:plugins/sudo
-ohmyzsh/ohmyzsh path:plugins/ubuntu
+
+# Yarn — yarn aliases (ya, yad, yb, ys, etc.)
 ohmyzsh/ohmyzsh path:plugins/yarn
 
-# Essentials
-# zsh-users/zsh-autosuggestions
-# zsh-users/zsh-completions
-zsh-users/zsh-syntax-highlighting
-#zdharma-continuum/fast-syntax-highlighting
-#zdharma/fast-syntax-highlighting
+# Ubuntu — apt/apt-get aliases and helpers (age, agi, agr, aguu, etc.)
+ohmyzsh/ohmyzsh path:plugins/ubuntu
 
+# =============================================================================
+# ESSENTIALS — load these last
+# =============================================================================
+
+# Autosuggestions — fish-like inline suggestions from your history as you type
+zsh-users/zsh-autosuggestions
+
+# Syntax Highlighting — real-time command coloring; MUST be loaded last
+zsh-users/zsh-syntax-highlighting
+# zdharma-continuum/fast-syntax-highlighting
