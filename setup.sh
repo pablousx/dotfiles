@@ -41,4 +41,13 @@ if [[ ! -f "$ZDOTDIR/.env" ]]; then
   cp "$ZDOTDIR/.env.example" "$ZDOTDIR/.env"
 fi
 
+# Binary Plugins (Plugins that require a compiled binary)
+PNPM_COMPLETION_DIR="$HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-g-plane-SLASH-pnpm-shell-completion"
+if [[ -d "$PNPM_COMPLETION_DIR" && ! -f "$PNPM_COMPLETION_DIR/pnpm-shell-completion" ]]; then
+  echo "Downloading pnpm-shell-completion binary..."
+  URL=$(curl -s https://api.github.com/repos/g-plane/pnpm-shell-completion/releases/latest | grep "browser_download_url.*x86_64-unknown-linux-gnu.tar.gz" | cut -d '"' -f 4)
+  curl -L "$URL" | tar -xz -C "$PNPM_COMPLETION_DIR/"
+  chmod +x "$PNPM_COMPLETION_DIR/pnpm-shell-completion"
+fi
+
 echo "Setup complete! Restart your terminal or run: exec zsh"

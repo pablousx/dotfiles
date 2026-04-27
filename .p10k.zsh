@@ -48,26 +48,20 @@
 
   # Left prompt segments.
   typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
-    # =========================[ Line #1 ]=========================
-    # context                 # user@host
-    dir                       # current directory
-    vcs                       # git status
-    # command_execution_time  # previous command duration
-    # =========================[ Line #2 ]=========================
-    newline                   # \n
-    # virtualenv              # python virtual environment
-    prompt_char               # prompt symbol
+    dir                     # current directory
+    vcs                     # git status
+    newline                 # \n
+    prompt_char             # prompt symbol
   )
 
   # Right prompt segments.
   typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
-    # =========================[ Line #1 ]=========================
-    command_execution_time    # previous command duration
-    virtualenv                # python virtual environment
-    context                   # user@host
-    # time                    # current time
-    # =========================[ Line #2 ]=========================
-    newline                   # \n
+    status                  # exit code of the last command
+    background_jobs         # presence of background jobs
+    node_version            # node.js version
+    pnpm                    # pnpm version/context
+    virtualenv              # python virtual environment
+    context                 # user@host
   )
 
   # Basic style options that define the overall prompt look.
@@ -119,37 +113,42 @@
   # Yellow previous command duration.
   typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_FOREGROUND=$yellow
 
-  # Grey Git prompt. This makes stale prompts indistinguishable from up-to-date ones.
+  # Status segment (checkmark/cross) - Hide on success
+  typeset -g POWERLEVEL9K_STATUS_OK=false
+  typeset -g POWERLEVEL9K_STATUS_ERROR=true
+  typeset -g POWERLEVEL9K_STATUS_ERROR_VISUAL_IDENTIFIER_EXPANSION='✘'
+  typeset -g POWERLEVEL9K_STATUS_ERROR_FOREGROUND=$red
+
+  # Directory shortening
+  typeset -g POWERLEVEL9K_SHORTEN_STRATEGY=truncate_to_unique
+  typeset -g POWERLEVEL9K_SHORTEN_DIR_LENGTH=1
+  typeset -g POWERLEVEL9K_DIR_MAX_LENGTH=80
+  
+  # Background jobs
+  typeset -g POWERLEVEL9K_BACKGROUND_JOBS_VISUAL_IDENTIFIER_EXPANSION='&'
+  typeset -g POWERLEVEL9K_BACKGROUND_JOBS_FOREGROUND=$cyan
+
+  # Node.js (fnm)
+  typeset -g POWERLEVEL9K_NODE_VERSION_FOREGROUND='76' # green-ish
+  typeset -g POWERLEVEL9K_NODE_VERSION_PROJECT_ONLY=true
+
+  # pnpm
+  typeset -g POWERLEVEL9K_PNPM_FOREGROUND='208' # orange-ish
+
+  # VCS (Git) enhanced details
   typeset -g POWERLEVEL9K_VCS_FOREGROUND=$grey
-
-  # Disable async loading indicator to make directories that aren't Git repositories
-  # indistinguishable from large Git repositories without known state.
   typeset -g POWERLEVEL9K_VCS_LOADING_TEXT=
-
-  # Don't wait for Git status even for a millisecond, so that prompt always updates
-  # asynchronously when Git state changes.
   typeset -g POWERLEVEL9K_VCS_MAX_SYNC_LATENCY_SECONDS=0
-
-  # Cyan ahead/behind arrows.
-  typeset -g POWERLEVEL9K_VCS_{INCOMING,OUTGOING}_CHANGESFORMAT_FOREGROUND=$cyan
-  # Don't show remote branch, current tag or stashes.
-  typeset -g POWERLEVEL9K_VCS_GIT_HOOKS=(vcs-detect-changes git-untracked git-aheadbehind)
-  # Don't show the branch icon.
-  typeset -g POWERLEVEL9K_VCS_BRANCH_ICON=
-  # When in detached HEAD state, show @commit where branch normally goes.
-  typeset -g POWERLEVEL9K_VCS_COMMIT_ICON='@'
-  # Don't show staged, unstaged, untracked indicators.
-  typeset -g POWERLEVEL9K_VCS_{STAGED,UNSTAGED,UNTRACKED}_ICON=
-  # Show '*' when there are staged, unstaged or untracked files.
-  typeset -g POWERLEVEL9K_VCS_DIRTY_ICON='*'
-  # Show '⇣' if local branch is behind remote.
-  typeset -g POWERLEVEL9K_VCS_INCOMING_CHANGES_ICON=':⇣'
-  # Show '⇡' if local branch is ahead of remote.
-  typeset -g POWERLEVEL9K_VCS_OUTGOING_CHANGES_ICON=':⇡'
-  # Don't show the number of commits next to the ahead/behind arrows.
-  typeset -g POWERLEVEL9K_VCS_{COMMITS_AHEAD,COMMITS_BEHIND}_MAX_NUM=1
-  # Remove space between '⇣' and '⇡' and all trailing spaces.
-  typeset -g POWERLEVEL9K_VCS_CONTENT_EXPANSION='${${${P9K_CONTENT/⇣* :⇡/⇣⇡}// }//:/ }'
+  typeset -g POWERLEVEL9K_VCS_GIT_HOOKS=(vcs-detect-changes git-untracked git-aheadbehind git-stashed git-remotebranch)
+  
+  # Icons for Git state
+  typeset -g POWERLEVEL9K_VCS_UNTRACKED_ICON='?'
+  typeset -g POWERLEVEL9K_VCS_UNSTAGED_ICON='!'
+  typeset -g POWERLEVEL9K_VCS_STAGED_ICON='+'
+  typeset -g POWERLEVEL9K_VCS_STASH_ICON='*'
+  
+  # Format the VCS string to show counts
+  typeset -g POWERLEVEL9K_VCS_CONTENT_EXPANSION='${P9K_CONTENT}'
 
   # Grey current time.
   typeset -g POWERLEVEL9K_TIME_FOREGROUND=$grey

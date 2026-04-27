@@ -57,8 +57,9 @@ ohmyzsh/ohmyzsh path:plugins/aws
 # npm — npm script aliases (npmg, npmS, etc.)
 ohmyzsh/ohmyzsh path:plugins/npm
 
-# pnpm — pnpm aliases and completions (pnx, pna, pnr, etc.)
-ohmyzsh/ohmyzsh path:plugins/pnpm
+# pnpm — advanced completions for pnpm --filter and workspace scripts (Manually installed binary)
+g-plane/pnpm-shell-completion
+
 
 # Yarn — yarn aliases (ya, yad, yb, ys, etc.)
 ohmyzsh/ohmyzsh path:plugins/yarn
