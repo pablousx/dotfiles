@@ -12,6 +12,7 @@ This dotfiles repository manages a customized ZSH environment with the following
 - **Prompt**: [Powerlevel10k](https://github.com/romkatv/powerlevel10k) with Pure-style configuration
 - **Plugin Manager**: [Antidote](https://antidote.sh//) for fast plugin loading
 - **Node Version Manager**: [fnm](https://github.com/Schniz/fnm) with automatic version switching
+- **Portable Shell**: [xxh](https://github.com/xxh/xxh) for carrying your shell environment over SSH
 
 ### Module System
 
@@ -104,6 +105,7 @@ Edit `.env` to enable/disable modules.
 ```sh
 # Dotfiles management
 dotfiles <git command>      # Git operations for dotfiles
+xxhh <host>                 # Connect via xxh with portable ZSH environment
 
 # DuckDuckGo search
 duck <search terms>         # Search DuckDuckGo

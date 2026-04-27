@@ -90,3 +90,8 @@ upload-dotfiles(){
   dotfiles push origin "$current_branch"
   echo "Done."
 }
+
+# xxh — portable shell for unmanaged remote hosts
+function xxhh() {
+  xxh "$1" +s zsh "${@:2}"
+}

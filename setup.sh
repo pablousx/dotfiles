@@ -14,6 +14,13 @@ fi
 fnm install $NODE_VERSION
 fnm default $NODE_VERSION
 
+# xxh — portable shell over SSH
+if ! command -v xxh &>/dev/null; then
+  echo "Installing xxh..."
+  brew install xxh
+  xxh +I xxh-shell-zsh
+fi
+
 ZDOTDIR=$HOME/dotfiles
 
 # Bootstrap $HOME/.zshrc
