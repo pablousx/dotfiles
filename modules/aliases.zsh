@@ -47,22 +47,22 @@ fi
 alias reload="exec zsh"
 alias bundle-plugins="antidote bundle < $ZDOTDIR/modules/plugins.txt > $ZDOTDIR/modules/plugins.zsh && reload"
 
-alias zsh-config="nano $ZDOTDIR/.zshrc && reload"
-alias zsh-aliases="nano $ZDOTDIR/modules/aliases.zsh && reload"
-alias zsh-plugins="nano $ZDOTDIR/modules/plugins.txt && bundle-plugins"
+alias zsh-config="$EDITOR $ZDOTDIR/.zshrc && reload"
+alias zsh-aliases="$EDITOR $ZDOTDIR/modules/aliases.zsh && reload"
+alias zsh-plugins="$EDITOR $ZDOTDIR/modules/plugins.txt && bundle-plugins"
 
 # Move the prompt to the bottom of the screen
 move_to_bottom() {
   print ${(pl:$LINES-3::\n:):-}
 }
 
-# Google command
+# Web search
 google(){
-  open "https://google.com/search?q=$1"
+  open "https://google.com/search?q=${(j:+:)@}"
 }
 
 duck(){
-  open "https://duckduckgo.com/?q=$1"
+  open "https://duckduckgo.com/?q=${(j:+:)@}"
 }
 
 # Meassure zsh exec time
@@ -73,9 +73,20 @@ timezsh(){
 
 # Upload dotfiles to cloud
 upload-dotfiles(){
+  local current_branch=$(dotfiles rev-parse --abbrev-ref HEAD)
+  echo "Current branch: $current_branch"
+
+  dotfiles status -s
+
+  echo -n "Commit message (default: 'dotfiles updated $(date +%d-%m-%y)'): "
+  read msg
+  if [[ -z "$msg" ]]; then
+    msg="dotfiles updated $(date +%d-%m-%y)"
+  fi
+
   echo "Uploading dotfiles..."
-  dotfiles add .
-  dotfiles commit -m "dotfiles updated $(date +%d-%m-%y)"
-  dotfiles push
+  dotfiles add -u # Only add tracked files that have changed
+  dotfiles commit -m "$msg"
+  dotfiles push origin "$current_branch"
   echo "Done."
 }

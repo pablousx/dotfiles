@@ -13,10 +13,12 @@ if [[ -f $ZDOTDIR/.env ]]; then
   export $(grep -v '^#' $ZDOTDIR/.env | xargs)
 fi
 
-# Auto-completion — sourced before compinit (plugin calls compinit internally)
-ZSH_AUTOCOMPLETE_CACHE="$HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-marlonrichert-SLASH-zsh-autocomplete"
-if [[ -d "$ZSH_AUTOCOMPLETE_CACHE" ]]; then
-  source "$ZSH_AUTOCOMPLETE_CACHE/zsh-autocomplete.plugin.zsh"
+# Optimizing auto-completion
+autoload -Uz compinit
+if [[ -n $ZDOTDIR/.zcompdump(N.mh+24) ]]; then
+  compinit
+else
+  compinit -C
 fi
 
 # ALIASES - Source aliases definition
@@ -55,10 +57,28 @@ if [[ $DISABLE_EXPAND_ALIAS != true ]]; then
 fi
 
 # ================= CONFIGURATION =================
+# Default Editor
+export EDITOR="nano"
+
 # Enable command auto-correction
 ENABLE_CORRECTION="true"
 
+# ================= HISTORY =================
+HISTFILE="$ZDOTDIR/.zsh_history"
+HISTSIZE=50000
+SAVEHIST=50000
+setopt EXTENDED_HISTORY        # save timestamp and duration
+setopt HIST_EXPIRE_DUPS_FIRST  # expire duplicates first when trimming
+setopt HIST_IGNORE_DUPS        # don't record duplicate of previous command
+setopt HIST_IGNORE_SPACE       # skip commands starting with a space
+setopt HIST_VERIFY             # show expanded history before running
+setopt SHARE_HISTORY           # share history across all sessions
 
+# ================= DIRECTORIES =================
+setopt AUTO_CD                 # type a directory name to cd into it
+setopt AUTO_PUSHD              # cd pushes to directory stack
+setopt PUSHD_IGNORE_DUPS       # no duplicate entries in stack
+setopt PUSHD_SILENT            # don't print stack on pushd/popd
 
 # ================= TWEAKS =================
 

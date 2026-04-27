@@ -5,19 +5,6 @@
 # Powerlevel10k — feature-rich, blazing-fast prompt with instant prompt support
 romkatv/powerlevel10k
 
-# =============================================================================
-# FRAMEWORK
-# =============================================================================
-
-# Oh My Zsh — core library loaded for utility functions and the plugin ecosystem
-ohmyzsh/ohmyzsh
-
-# =============================================================================
-# AUTO-COMPLETION (load before compinit — sourced directly in .zshrc)
-# =============================================================================
-
-# Autocomplete — real-time type-ahead completions as you type (no Tab needed)
-marlonrichert/zsh-autocomplete
 
 # =============================================================================
 # PRODUCTIVITY
@@ -32,14 +19,8 @@ ohmyzsh/ohmyzsh path:plugins/sudo
 # Window Title — dynamically updates the terminal tab title
 olets/zsh-window-title
 
-
 # Command Not Found — suggests the apt package to install for unknown commands
 ohmyzsh/ohmyzsh path:plugins/command-not-found
-
-# =============================================================================
-# VERSION MANAGERS
-# =============================================================================
-
 
 # =============================================================================
 # GIT & GITHUB
@@ -50,6 +31,9 @@ ohmyzsh/ohmyzsh path:plugins/git
 
 # GitHub CLI — tab completions for the gh command
 ohmyzsh/ohmyzsh path:plugins/gh
+
+# Gitignore — `gi python` generates a .gitignore via gitignore.io
+ohmyzsh/ohmyzsh path:plugins/gitignore
 
 # =============================================================================
 # COMPLETIONS
@@ -64,20 +48,57 @@ zsh-users/zsh-completions
 # Docker — official Docker CLI tab completions
 docker/cli path:contrib/completion/zsh/_docker
 
+# Docker Compose — dco, dcup, dcdown, dce aliases
+ohmyzsh/ohmyzsh path:plugins/docker-compose
+
 # AWS CLI — completions and environment helpers for the aws command
 ohmyzsh/ohmyzsh path:plugins/aws
 
-# Copy file — copyfile <file>: pipes a file's content directly to clipboard
-ohmyzsh/ohmyzsh path:plugins/copyfile
-
 # npm — npm script aliases (npmg, npmS, etc.)
 ohmyzsh/ohmyzsh path:plugins/npm
+
+# pnpm — pnpm aliases and completions (pnx, pna, pnr, etc.)
+ohmyzsh/ohmyzsh path:plugins/pnpm
 
 # Yarn — yarn aliases (ya, yad, yb, ys, etc.)
 ohmyzsh/ohmyzsh path:plugins/yarn
 
 # Ubuntu — apt/apt-get aliases and helpers (age, agi, agr, aguu, etc.)
 ohmyzsh/ohmyzsh path:plugins/ubuntu
+
+# Copy file — copyfile <file>: pipes a file's content directly to clipboard
+ohmyzsh/ohmyzsh path:plugins/copyfile
+
+# Copy path — copypath: copies current directory path to clipboard
+ohmyzsh/ohmyzsh path:plugins/copypath
+
+# =============================================================================
+# UTILITIES
+# =============================================================================
+
+# Extract — `x archive.tar.gz` extracts any archive format automatically
+ohmyzsh/ohmyzsh path:plugins/extract
+
+# Colored man pages — adds syntax highlighting to man page output
+ohmyzsh/ohmyzsh path:plugins/colored-man-pages
+
+# Dotenv — auto-sources .env file when you cd into a directory
+# ohmyzsh/ohmyzsh path:plugins/dotenv
+
+# Encode64 — e64 / d64 to base64 encode and decode strings
+ohmyzsh/ohmyzsh path:plugins/encode64
+
+# JSON tools — pp_json, is_json, urlencode_json, urldecode_json
+ohmyzsh/ohmyzsh path:plugins/jsontools
+
+# URL tools — urlencode / urldecode strings inline
+ohmyzsh/ohmyzsh path:plugins/urltools
+
+# History — h (history), hs (grep history), hsi (case-insensitive grep)
+ohmyzsh/ohmyzsh path:plugins/history
+
+# Aliases — als <pattern> to search all defined aliases interactively
+ohmyzsh/ohmyzsh path:plugins/aliases
 
 # =============================================================================
 # ESSENTIALS — load these last
