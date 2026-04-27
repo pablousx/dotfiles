@@ -17,8 +17,15 @@ fnm default $NODE_VERSION
 # xxh — portable shell over SSH
 if ! command -v xxh &>/dev/null; then
   echo "Installing xxh..."
-  brew install xxh
+  if command -v brew &>/dev/null; then
+    brew install xxh
+  else
+    # Fallback to pip if brew is missing
+    sudo apt install python3-pip -y
+    pip3 install xxh-xxh
+  fi
   xxh +I xxh-shell-zsh
+  xxh +I xxh-plugin-zsh-dotfiles+path+$HOME/dotfiles/modules/xxh-plugin
 fi
 
 ZDOTDIR=$HOME/dotfiles

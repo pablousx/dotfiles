@@ -93,5 +93,10 @@ upload-dotfiles(){
 
 # xxh — portable shell for unmanaged remote hosts
 function xxhh() {
-  xxh "$1" +s zsh "${@:2}"
+  if [[ "$*" == *"+if"* ]]; then
+    rm -rf ~/.xxh/.xxh/plugins/xxh-plugin-zsh-dotfiles* 2>/dev/null
+  fi
+
+  local dot_src="${ZDOTDIR:-$HOME/dotfiles}"
+  XXH_DOTFILES_SRC="$dot_src" xxh "$1" +I xxh-plugin-zsh-dotfiles+path+"$dot_src/modules/xxh-plugin" +s zsh "${@:2}"
 }

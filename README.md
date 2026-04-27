@@ -130,6 +130,22 @@ zsh-aliases             # Edit aliases and reload
 zsh-plugins          # Rebuild plugin cache and reload
 ```
 
+### 🚀 Portable Zsh (xxh)
+
+This project includes a high-performance, seamless integration for `xxh`, allowing you to take your entire Zsh environment (aliases, P10k theme, and plugins) to any remote host without leaving a trace.
+
+- **Fast Connections**: By default, `xxhh` uses a local build cache for instant logins.
+- **Auto-Sync**: Your local aliases and Zsh options are automatically "compiled" into the remote session.
+- **Cache Control**: If you've changed your local config and want to force a clean sync, just add `+if`.
+
+```bash
+# Connect normally (fast)
+xxhh user@host
+
+# Force a clean rebuild and re-install (slow, used after config changes)
+xxhh user@host +if
+```
+
 ### Updating
 
 ```sh
