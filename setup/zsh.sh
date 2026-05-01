@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
 
 ACTION=$1
-ZDOTDIR=$HOME/dotfiles
+DOTFILES_DIR=$HOME/dotfiles
 
 case "$ACTION" in
     yes)
         echo "Setting up ZSH and plugins..."
-        
+
         # Bootstrap ~/.zshrc
         touch "$HOME/.zshrc"
-        if ! grep -q "export ZDOTDIR=$ZDOTDIR" "$HOME/.zshrc"; then
-            echo "export ZDOTDIR=$ZDOTDIR" >> "$HOME/.zshrc"
+
+        if ! grep -q "DOTFILES_DIR=$DOTFILES_DIR" "$HOME/.zshrc"; then
+            echo "DOTFILES_DIR=$DOTFILES_DIR" >> "$HOME/.zshrc"
         fi
-        if ! grep -q "source \$ZDOTDIR/.zshrc" "$HOME/.zshrc"; then
-            echo "source \$ZDOTDIR/.zshrc" >> "$HOME/.zshrc"
+        if ! grep -q "source \$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"; then
+            echo "source \$DOTFILES_DIR/.zshrc" >> "$HOME/.zshrc"
         fi
 
         # Change shell
@@ -26,19 +27,17 @@ case "$ACTION" in
         fi
 
         # Antidote
-        if [[ ! -d "$ZDOTDIR/.antidote" ]]; then
-            git clone --depth=1 https://github.com/mattmc3/antidote.git "$ZDOTDIR/.antidote"
+        if [[ ! -d "$DOTFILES_DIR/.antidote" ]]; then
+            git clone --depth=1 https://github.com/mattmc3/antidote.git "$DOTFILES_DIR/.antidote"
         fi
 
         # Bundle plugins
-        if [[ -f "$ZDOTDIR/.antidote/antidote.zsh" ]]; then
-            # Zsh syntax is sometimes needed for antidote if it's purely zsh, 
-            # but we can try running it in zsh explicitly
-            zsh -c "source \"$ZDOTDIR/.antidote/antidote.zsh\" && antidote bundle < \"$ZDOTDIR/modules/plugins.txt\" > \"$ZDOTDIR/modules/plugins.zsh\""
+        if [[ -f "$DOTFILES_DIR/.antidote/antidote.zsh" ]]; then
+            zsh -c "source \"$DOTFILES_DIR/.antidote/antidote.zsh\" && antidote bundle < \"$DOTFILES_DIR/modules/plugins.txt\" > \"$DOTFILES_DIR/modules/plugins.zsh\""
         fi
 
-        if [[ ! -f "$ZDOTDIR/.env" && -f "$ZDOTDIR/.env.example" ]]; then
-            cp "$ZDOTDIR/.env.example" "$ZDOTDIR/.env"
+        if [[ ! -f "$DOTFILES_DIR/.env" && -f "$DOTFILES_DIR/.env.example" ]]; then
+            cp "$DOTFILES_DIR/.env.example" "$DOTFILES_DIR/.env"
         fi
 
         # pnpm-shell-completion binary
@@ -60,9 +59,8 @@ case "$ACTION" in
             echo "Changing default shell back to bash..."
             sudo chsh -s "$(which bash)" "$(whoami)"
         fi
-        rm -rf "$ZDOTDIR/.antidote"
-        rm -f "$ZDOTDIR/modules/plugins.zsh"
-        # We leave ~/.zshrc but note it
+        rm -rf "$DOTFILES_DIR/.antidote"
+        rm -f "$DOTFILES_DIR/modules/plugins.zsh"
         echo "Note: ~/.zshrc was not modified, you may want to clean it up manually."
         ;;
     skip)

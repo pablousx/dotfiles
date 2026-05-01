@@ -69,25 +69,25 @@ fnm install $NODE_VERSION
 fnm default $NODE_VERSION
 
 # Configure dotfiles directory
-export ZDOTDIR=$HOME/dotfiles
+DOTFILES_DIR=$HOME/dotfiles
 
 touch $HOME/.zshrc
-if ! grep -q "export ZDOTDIR=$ZDOTDIR" $HOME/.zshrc; then
-  echo "export ZDOTDIR=$ZDOTDIR" >> $HOME/.zshrc
+if ! grep -q "DOTFILES_DIR=$DOTFILES_DIR" $HOME/.zshrc; then
+  echo "DOTFILES_DIR=$DOTFILES_DIR" >> $HOME/.zshrc
 fi
-if ! grep -q "source \$ZDOTDIR/.zshrc" $HOME/.zshrc; then
-  echo "source \$ZDOTDIR/.zshrc" >> $HOME/.zshrc
+if ! grep -q "source \$DOTFILES_DIR/.zshrc" $HOME/.zshrc; then
+  echo "source \$DOTFILES_DIR/.zshrc" >> $HOME/.zshrc
 fi
 
 # Set ZSH as default shell
 chsh -s $(which zsh)
 
 # Install Antidote
-git clone --depth=1 https://github.com/mattmc3/antidote.git $ZDOTDIR/.antidote
+git clone --depth=1 https://github.com/mattmc3/antidote.git $DOTFILES_DIR/.antidote
 
 # Bundle plugins
-source $ZDOTDIR/.antidote/antidote.zsh
-antidote bundle < $ZDOTDIR/modules/plugins.txt > $ZDOTDIR/modules/plugins.zsh
+source $DOTFILES_DIR/.antidote/antidote.zsh
+antidote bundle < $DOTFILES_DIR/modules/plugins.txt > $DOTFILES_DIR/modules/plugins.zsh
 
 # Copy and configure environment
 cp .env.example .env

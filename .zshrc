@@ -1,7 +1,10 @@
+# Ensure DOTFILES_DIR is set (fallback to current directory if sourced directly)
+export DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${(%):-%x}")" && pwd)}"
+
 # Add deno completions to search path
-if [[ ":$FPATH:" != *":$ZDOTDIR/completions:"* ]]; then export FPATH="$ZDOTDIR/completions:$FPATH"; fi
+if [[ ":$FPATH:" != *":$DOTFILES_DIR/completions:"* ]]; then export FPATH="$DOTFILES_DIR/completions:$FPATH"; fi
 export HOME_ZSHRC="$HOME/.zshrc"
-export ZSHRC="$ZDOTDIR/.zshrc"
+export ZSHRC="$DOTFILES_DIR/.zshrc"
 
 # Path Configuration
 export PATH="$HOME/.local/bin:$PATH"
@@ -22,13 +25,13 @@ source $HOME/.ssh/sync-ssh-env.sh
 # ================= MODULES =================
 
 # Enable or disable modules creating a ./.env file (copy ./.env.example to ./.env)
-if [[ -f $ZDOTDIR/.env ]]; then
-  export $(grep -v '^#' $ZDOTDIR/.env | xargs)
+if [[ -f $DOTFILES_DIR/.env ]]; then
+  export $(grep -v '^#' $DOTFILES_DIR/.env | xargs)
 fi
 
 # Optimizing auto-completion
 autoload -Uz compinit
-if [[ -n $ZDOTDIR/.zcompdump(N.mh+24) ]]; then
+if [[ -n $DOTFILES_DIR/.zcompdump(N.mh+24) ]]; then
   compinit
 else
   compinit -C
@@ -68,12 +71,12 @@ zle -N self-insert url-quote-magic
 
 # ALIASES - Source aliases definition
 if [[ $DISABLE_ALIASES != true ]]; then
-  source $ZDOTDIR/modules/aliases.zsh
+  source $DOTFILES_DIR/modules/aliases.zsh
 fi
 
 # PROMPT - Powerlevel10k
 if [[ $DISABLE_PROMPT != true ]]; then
-  source $ZDOTDIR/modules/prompt.zsh
+  source $DOTFILES_DIR/modules/prompt.zsh
 fi
 
 # Loading fzf
@@ -111,19 +114,19 @@ zstyle ':fzf-tab:complete:systemctl-*:*' fzf-preview 'systemctl status $word'
 
 # PLUGINS - Antidote
 if [[ $DISABLE_PLUGINS != true ]]; then
-  fpath=($ZDOTDIR/.antidote/functions $fpath)
+  fpath=($DOTFILES_DIR/.antidote/functions $fpath)
   autoload -Uz antidote
-  source $ZDOTDIR/modules/plugins.zsh
+  source $DOTFILES_DIR/modules/plugins.zsh
 fi
 
 # PRINT ALIAS COMPLETION
 if [[ $DISABLE_PRINT_ALIAS_COMPLETION != true ]]; then
-  source $ZDOTDIR/modules/print-alias-completion.zsh
+  source $DOTFILES_DIR/modules/print-alias-completion.zsh
 fi
 
 # EXPAND ALIAS
 if [[ $DISABLE_EXPAND_ALIAS != true ]]; then
-  source $ZDOTDIR/modules/expand-alias.zsh
+  source $DOTFILES_DIR/modules/expand-alias.zsh
 fi
 
 # ================= CONFIGURATION =================
@@ -134,7 +137,7 @@ export EDITOR="nano"
 ENABLE_CORRECTION="true"
 
 # ================= HISTORY =================
-HISTFILE="$ZDOTDIR/.zsh_history"
+HISTFILE="$DOTFILES_DIR/.zsh_history"
 HISTSIZE=50000
 SAVEHIST=50000
 setopt EXTENDED_HISTORY        # save timestamp and duration
@@ -168,11 +171,3 @@ zstyle :bracketed-paste-magic paste-finish pastefinish
 if [ -d "$FNM_PATH" ]; then
   eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
 fi
-
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
-
-# opencode
-. "/home/pablousx/.deno/env"
-
-# bun completions
-[ -s "/home/pablousx/.bun/_bun" ] && source "/home/pablousx/.bun/_bun"

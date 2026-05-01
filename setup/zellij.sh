@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ACTION=$1
-ZDOTDIR=$HOME/dotfiles
+DOTFILES_DIR=$HOME/dotfiles
 
 case "$ACTION" in
     yes)
@@ -21,8 +21,8 @@ case "$ACTION" in
         fi
 
         # Link config
-        if [[ ! -L "$HOME/.config/zellij" && ! -d "$HOME/.config/zellij" && -d "$ZDOTDIR/zellij" ]]; then
-            ln -s "$ZDOTDIR/zellij" "$HOME/.config/zellij"
+        if [[ ! -L "$HOME/.config/zellij" && ! -d "$HOME/.config/zellij" && -d "$DOTFILES_DIR/zellij" ]]; then
+            ln -s "$DOTFILES_DIR/zellij" "$HOME/.config/zellij"
         fi
 
         # fzf-zellij

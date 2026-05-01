@@ -1,5 +1,5 @@
 # Core
-alias dotfiles='/usr/bin/git --git-dir=$ZDOTDIR --work-tree=$ZDOTDIR'
+alias dotfiles='/usr/bin/git --git-dir=$DOTFILES_DIR --work-tree=$DOTFILES_DIR'
 
 # Npm
 alias ni="npm install"
@@ -72,11 +72,11 @@ if [[ -z "$ZELLIJ" ]] && command -v zellij &> /dev/null; then
 fi
 
 alias reload="exec zsh"
-alias bundle-plugins="antidote bundle < $ZDOTDIR/modules/plugins.txt > $ZDOTDIR/modules/plugins.zsh && reload"
+alias bundle-plugins="antidote bundle < $DOTFILES_DIR/modules/plugins.txt > $DOTFILES_DIR/modules/plugins.zsh && reload"
 
-alias zsh-config="$EDITOR $ZDOTDIR/.zshrc && reload"
-alias zsh-aliases="$EDITOR $ZDOTDIR/modules/aliases.zsh && reload"
-alias zsh-plugins="$EDITOR $ZDOTDIR/modules/plugins.txt && bundle-plugins"
+alias zsh-config="$EDITOR $DOTFILES_DIR/.zshrc && reload"
+alias zsh-aliases="$EDITOR $DOTFILES_DIR/modules/aliases.zsh && reload"
+alias zsh-plugins="$EDITOR $DOTFILES_DIR/modules/plugins.txt && bundle-plugins"
 
 # Move the prompt to the bottom of the screen
 move_to_bottom() {
@@ -124,6 +124,6 @@ function xxhh() {
     rm -rf ~/.xxh/.xxh/plugins/xxh-plugin-zsh-dotfiles* 2>/dev/null
   fi
 
-  local dot_src="${ZDOTDIR:-$HOME/dotfiles}"
+  local dot_src="${DOTFILES_DIR:-$HOME/dotfiles}"
   XXH_DOTFILES_SRC="$dot_src" xxh "$1" +I xxh-plugin-zsh-dotfiles+path+"$dot_src/modules/xxh-plugin" +s zsh "${@:2}"
 }
