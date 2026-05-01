@@ -44,6 +44,33 @@ else
   alias open="xdg-open 2>/dev/null"
 fi
 
+# Zellij
+alias zj="zellij"
+alias za="zellij attach"
+alias zl="zellij list-sessions"
+alias zka="zellij kill-all-sessions"
+
+# fzf-zellij: Open fzf in a Zellij floating pane when inside Zellij
+fzf() {
+   case "$1" in
+      --bash|--zsh|--fish|--version|-h|--help|--man)
+         command fzf "$@"
+         ;;
+      *)
+         if [[ -n "$ZELLIJ" ]]; then
+            fzf-zellij "$@"
+         else
+            command fzf "$@"
+         fi
+         ;;
+   esac
+}
+
+# Auto-start Zellij
+if [[ -z "$ZELLIJ" ]] && command -v zellij &> /dev/null; then
+    eval "$(zellij setup --generate-auto-start zsh)"
+fi
+
 alias reload="exec zsh"
 alias bundle-plugins="antidote bundle < $ZDOTDIR/modules/plugins.txt > $ZDOTDIR/modules/plugins.zsh && reload"
 

@@ -3,6 +3,19 @@ if [[ ":$FPATH:" != *":$ZDOTDIR/completions:"* ]]; then export FPATH="$ZDOTDIR/c
 export HOME_ZSHRC="$HOME/.zshrc"
 export ZSHRC="$ZDOTDIR/.zshrc"
 
+# Path Configuration
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.opencode/bin:$PATH"
+FNM_PATH="$HOME/.local/share/fnm"
+if [ -d "$FNM_PATH" ]; then
+  export PATH="$FNM_PATH:$PATH"
+fi
+export PNPM_HOME="/home/pablousx/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+
 # SSH Environment Configuration
 source $HOME/.ssh/sync-ssh-env.sh
 
@@ -152,24 +165,14 @@ pastefinish() {
 zstyle :bracketed-paste-magic paste-init pasteinit
 zstyle :bracketed-paste-magic paste-finish pastefinish
 
-# fnm
-FNM_PATH="$HOME/.local/share/fnm"
 if [ -d "$FNM_PATH" ]; then
-  export PATH="$FNM_PATH:$PATH"
   eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
 fi
-
-# pnpm
-export PNPM_HOME="$HOME/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# pnpm end
 
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
 
 # opencode
-export PATH="$HOME/.opencode/bin:$PATH"
-export PATH="$HOME/.local/bin:$PATH"
 . "/home/pablousx/.deno/env"
+
+# bun completions
+[ -s "/home/pablousx/.bun/_bun" ] && source "/home/pablousx/.bun/_bun"

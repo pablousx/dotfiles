@@ -22,6 +22,9 @@ olets/zsh-window-title
 # Command Not Found — suggests the apt package to install for unknown commands
 ohmyzsh/ohmyzsh path:plugins/command-not-found
 
+# Fzf — fzf keybindings and fuzzy completion
+ohmyzsh/ohmyzsh path:plugins/fzf
+
 # =============================================================================
 # GIT & GITHUB
 # =============================================================================

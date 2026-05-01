@@ -1,0 +1,159 @@
+// Zellij Configuration File
+// For more information, see: https://zellij.dev/documentation/config
+
+// Use simplified UI elements (removes heavy background boxes)
+simplified_ui true
+
+// Disable the "About Zellij" startup tips
+show_startup_tips false
+
+// Use compact layout for the tab bar
+// default_layout "compact"
+
+// Enable copy-on-select (copy-on-release)
+copy_on_select true
+
+// UI Configuration
+ui {
+    pane_frames {
+        rounded_corners true
+    }
+}
+
+themes {
+    my_theme {
+        ribbon_unselected {
+            base 192 192 192
+            background 30 30 46
+            emphasis_0 243 139 168
+            emphasis_1 249 226 175
+            emphasis_2 137 180 250
+            emphasis_3 203 166 247
+        }
+        ribbon_selected {
+            base 30 30 46
+            background 137 180 250
+            emphasis_0 243 139 168
+            emphasis_1 249 226 175
+            emphasis_2 137 180 250
+            emphasis_3 203 166 247
+        }
+        text_unselected {
+            base 192 192 192
+            background 30 30 46
+            emphasis_0 243 139 168
+            emphasis_1 249 226 175
+            emphasis_2 137 180 250
+            emphasis_3 203 166 247
+        }
+        text_selected {
+            base 192 192 192
+            background 30 30 46
+            emphasis_0 243 139 168
+            emphasis_1 249 226 175
+            emphasis_2 137 180 250
+            emphasis_3 203 166 247
+        }
+        table_title {
+            base 192 192 192
+            background 30 30 46
+            emphasis_0 243 139 168
+            emphasis_1 249 226 175
+            emphasis_2 137 180 250
+            emphasis_3 203 166 247
+        }
+        table_cell_unselected {
+            base 192 192 192
+            background 30 30 46
+            emphasis_0 243 139 168
+            emphasis_1 249 226 175
+            emphasis_2 137 180 250
+            emphasis_3 203 166 247
+        }
+        table_cell_selected {
+            base 192 192 192
+            background 30 30 46
+            emphasis_0 243 139 168
+            emphasis_1 249 226 175
+            emphasis_2 137 180 250
+            emphasis_3 203 166 247
+        }
+        list_unselected {
+            base 192 192 192
+            background 30 30 46
+            emphasis_0 243 139 168
+            emphasis_1 249 226 175
+            emphasis_2 137 180 250
+            emphasis_3 203 166 247
+        }
+        list_selected {
+            base 192 192 192
+            background 30 30 46
+            emphasis_0 243 139 168
+            emphasis_1 249 226 175
+            emphasis_2 137 180 250
+            emphasis_3 203 166 247
+        }
+        frame_unselected {
+            base 192 192 192
+            background 30 30 46
+            emphasis_0 243 139 168
+            emphasis_1 249 226 175
+            emphasis_2 137 180 250
+            emphasis_3 203 166 247
+        }
+        frame_selected {
+            base 137 180 250
+            background 30 30 46
+            emphasis_0 243 139 168
+            emphasis_1 249 226 175
+            emphasis_2 137 180 250
+            emphasis_3 203 166 247
+        }
+        frame_highlight {
+            base 243 139 168
+            background 30 30 46
+            emphasis_0 243 139 168
+            emphasis_1 249 226 175
+            emphasis_2 137 180 250
+            emphasis_3 203 166 247
+        }
+        exit_code_success {
+            base 166 227 161
+            background 30 30 46
+            emphasis_0 243 139 168
+            emphasis_1 249 226 175
+            emphasis_2 137 180 250
+            emphasis_3 203 166 247
+        }
+        exit_code_error {
+            base 243 139 168
+            background 30 30 46
+            emphasis_0 243 139 168
+            emphasis_1 249 226 175
+            emphasis_2 137 180 250
+            emphasis_3 203 166 247
+        }
+    }
+}
+
+theme "my_theme"
+
+// Keybindings (customized)
+keybinds {
+    shared_except "locked" {
+        bind "Ctrl y" {
+            LaunchOrFocusPlugin "file:~/.config/zellij/plugins/room.wasm" {
+                floating true
+                ignore_case true
+                quick_jump true
+            }
+        }
+        bind "Alt f" {
+            LaunchOrFocusPlugin "file:~/.config/zellij/plugins/zellij_forgot.wasm" {
+                "LOAD_ZELLIJ_BINDINGS" "true"
+                floating true
+            }
+        }
+    }
+}
