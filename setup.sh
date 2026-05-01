@@ -1,110 +1,73 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
-# Core dependencies
-sudo apt update
-sudo apt install zsh git curl nano unzip fzf -y
+# Helper to prompt user
+prompt_option() {
+    local prompt_text="$1"
+    local default_val="$2"
+    local user_input
 
-# fnm
-NODE_VERSION=${NODE_VERSION:-24.12.0}
-if ! command -v fnm &> /dev/null; then
-  curl -fsSL https://fnm.vercel.app/install | bash
-  # Make fnm available for the rest of this script without exporting PATH
-  fnm() { "$HOME/.local/share/fnm/fnm" "$@" }
-fi
-fnm install $NODE_VERSION
-fnm default $NODE_VERSION
+    while true; do
+        read -p "$prompt_text (yes [y], no [n], skip [s]) [$default_val]: " user_input
+        user_input=$(echo "$user_input" | tr '[:upper:]' '[:lower:]')
+        [ -z "$user_input" ] && user_input="$default_val"
 
-# xxh — portable shell over SSH
-if ! command -v xxh &>/dev/null; then
-  echo "Installing xxh..."
-  if command -v brew &>/dev/null; then
-    brew install xxh
-  else
-    # Fallback to pip if brew is missing
-    sudo apt install python3-pip -y
-    pip3 install xxh-xxh
-  fi
-  xxh +I xxh-shell-zsh
-  xxh +I xxh-plugin-zsh-dotfiles+path+$HOME/dotfiles/modules/xxh-plugin
-fi
+        case "$user_input" in
+            y|yes) echo "yes"; return 0 ;;
+            n|no) echo "no"; return 0 ;;
+            s|skip) echo "skip"; return 0 ;;
+            *) echo "Invalid option. Please use 'y', 'n', or 's'." >&2 ;;
+        esac
+    done
+}
 
-ZDOTDIR=$HOME/dotfiles
+echo "========================================"
+echo "  Dotfiles Interactive Setup"
+echo "========================================"
+echo
 
-# Zellij Setup
-if ! command -v zellij &> /dev/null; then
-  echo "Installing zellij..."
-  mkdir -p "$HOME/.local/bin"
-  URL=$(curl -s -H "User-Agent: curl" https://api.github.com/repos/zellij-org/zellij/releases/latest | grep "browser_download_url.*x86_64-unknown-linux-musl.tar.gz" | head -n 1 | cut -d '"' -f 4)
-  if [[ -n "$URL" ]]; then
-    curl -L "$URL" | tar -xz -C "$HOME/.local/bin"
-  else
-    echo "Error: Could not find Zellij download URL. You might be rate-limited by GitHub API."
-  fi
-fi
-mkdir -p "$HOME/.config"
-if [[ ! -L "$HOME/.config/zellij" && ! -d "$HOME/.config/zellij" ]]; then
-  ln -s "$ZDOTDIR/zellij" "$HOME/.config/zellij"
-fi
+OPT_CORE=$(prompt_option "1. Would you like to install core dependencies? (zsh, git, curl, fzf, etc.)" "yes")
+OPT_FNM=$(prompt_option "2. Would you like to set up FNM & Node.js?" "yes")
+OPT_XXH=$(prompt_option "3. Would you like to set up XXH (Portable Shell)?" "yes")
+OPT_ZELLIJ=$(prompt_option "4. Would you like to set up Zellij & Plugins?" "yes")
+OPT_ZSH=$(prompt_option "5. Would you like to configure the Zsh Environment & Plugins?" "yes")
 
-# fzf-zellij Setup
-if [[ ! -f "$HOME/.local/bin/fzf-zellij" ]]; then
-  echo "Installing fzf-zellij..."
-  curl -L https://raw.githubusercontent.com/k-kuroguro/fzf-zellij/refs/heads/main/bin/fzf-zellij -o "$HOME/.local/bin/fzf-zellij"
-  chmod +x "$HOME/.local/bin/fzf-zellij"
+echo
+echo "========================================"
+echo "Final Confirmation:"
+echo "  1. Core Dependencies: $OPT_CORE"
+echo "  2. FNM & Node.js:     $OPT_FNM"
+echo "  3. XXH:               $OPT_XXH"
+echo "  4. Zellij & Plugins:  $OPT_ZELLIJ"
+echo "  5. Zsh Environment:   $OPT_ZSH"
+echo "========================================"
+echo
+
+read -p "Proceed with these settings? (y/n) [y]: " CONFIRM
+CONFIRM=$(echo "$CONFIRM" | tr '[:upper:]' '[:lower:]')
+[ -z "$CONFIRM" ] && CONFIRM="y"
+
+if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "yes" ]; then
+    echo "Setup aborted."
+    exit 1
 fi
 
-# room Setup
-if [[ ! -f "$HOME/.config/zellij/plugins/room.wasm" ]]; then
-  echo "Installing room..."
-  mkdir -p "$HOME/.config/zellij/plugins"
-  curl -L https://github.com/rvcas/room/releases/latest/download/room.wasm -o "$HOME/.config/zellij/plugins/room.wasm"
-fi
+REPO_ROOT=$(realpath "$(dirname "$0")")
 
-# zellij-forgot Setup
-if [[ ! -f "$HOME/.config/zellij/plugins/zellij_forgot.wasm" ]]; then
-  echo "Installing zellij-forgot..."
-  mkdir -p "$HOME/.config/zellij/plugins"
-  curl -L https://github.com/karimould/zellij-forgot/releases/latest/download/zellij_forgot.wasm -o "$HOME/.config/zellij/plugins/zellij_forgot.wasm"
-fi
+# Make scripts executable
+chmod +x "$REPO_ROOT/setup/core.sh"
+chmod +x "$REPO_ROOT/setup/fnm.sh"
+chmod +x "$REPO_ROOT/setup/xxh.sh"
+chmod +x "$REPO_ROOT/setup/zellij.sh"
+chmod +x "$REPO_ROOT/setup/zsh.sh"
 
+# Execute setups
+echo "Executing setup steps..."
+bash "$REPO_ROOT/setup/core.sh" "$OPT_CORE"
+bash "$REPO_ROOT/setup/fnm.sh" "$OPT_FNM"
+bash "$REPO_ROOT/setup/xxh.sh" "$OPT_XXH"
+bash "$REPO_ROOT/setup/zellij.sh" "$OPT_ZELLIJ"
+bash "$REPO_ROOT/setup/zsh.sh" "$OPT_ZSH"
 
-
-# Bootstrap $HOME/.zshrc
-touch $HOME/.zshrc
-if ! grep -q "export ZDOTDIR=$ZDOTDIR" $HOME/.zshrc; then
-  echo "export ZDOTDIR=$ZDOTDIR" >> $HOME/.zshrc
-fi
-if ! grep -q "source \$ZDOTDIR/.zshrc" $HOME/.zshrc; then
-  echo "source \$ZDOTDIR/.zshrc" >> $HOME/.zshrc
-fi
-
-# Change shell
-sudo chsh -s $(which zsh) $(whoami)
-
-# Antidote
-if [[ ! -d "$ZDOTDIR/.antidote" ]]; then
-  git clone --depth=1 https://github.com/mattmc3/antidote.git "$ZDOTDIR/.antidote"
-fi
-
-# Bundle plugins (without relying on aliases)
-source "$ZDOTDIR/.antidote/antidote.zsh"
-antidote bundle < "$ZDOTDIR/modules/plugins.txt" > "$ZDOTDIR/modules/plugins.zsh"
-
-if [[ ! -f "$ZDOTDIR/.env" ]]; then
-  cp "$ZDOTDIR/.env.example" "$ZDOTDIR/.env"
-fi
-
-# Binary Plugins (Plugins that require a compiled binary)
-PNPM_COMPLETION_DIR="$HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-g-plane-SLASH-pnpm-shell-completion"
-if [[ -d "$PNPM_COMPLETION_DIR" && ! -f "$PNPM_COMPLETION_DIR/pnpm-shell-completion" ]]; then
-  echo "Downloading pnpm-shell-completion binary..."
-  URL=$(curl -s -H "User-Agent: curl" https://api.github.com/repos/g-plane/pnpm-shell-completion/releases/latest | grep "browser_download_url.*x86_64-unknown-linux-gnu.tar.gz" | head -n 1 | cut -d '"' -f 4)
-  if [[ -n "$URL" ]]; then
-    curl -L "$URL" | tar -xz -C "$PNPM_COMPLETION_DIR/"
-    chmod +x "$PNPM_COMPLETION_DIR/pnpm-shell-completion"
-  else
-    echo "Error: Could not find pnpm-shell-completion download URL."
-  fi
-fi
-
-echo "Setup complete! Restart your terminal or run: exec zsh"
+echo
+echo "========================================"
+echo "Setup complete! Restart your terminal or run: reload"
