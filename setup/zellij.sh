@@ -7,7 +7,6 @@ case "$ACTION" in
     yes)
         echo "Installing Zellij and plugins..."
         mkdir -p "$HOME/.local/bin"
-        mkdir -p "$HOME/.config/zellij/plugins"
 
         # Zellij
         if ! command -v zellij &> /dev/null && [[ ! -f "$HOME/.local/bin/zellij" ]]; then
@@ -21,8 +20,17 @@ case "$ACTION" in
         fi
 
         # Link config
-        if [[ ! -L "$HOME/.config/zellij" && ! -d "$HOME/.config/zellij" && -d "$DOTFILES_DIR/zellij" ]]; then
-            ln -s "$DOTFILES_DIR/zellij" "$HOME/.config/zellij"
+        if [[ -d "$DOTFILES_DIR/zellij" ]]; then
+            if [[ -L "$HOME/.config/zellij" ]]; then
+                echo "Zellij config is already symlinked."
+            elif [[ -d "$HOME/.config/zellij" ]]; then
+                echo "Zellij config directory already exists. Moving to backup..."
+                mv "$HOME/.config/zellij" "$HOME/.config/zellij.bak.$(date +%s)"
+                ln -s "$DOTFILES_DIR/zellij" "$HOME/.config/zellij"
+            else
+                mkdir -p "$HOME/.config"
+                ln -s "$DOTFILES_DIR/zellij" "$HOME/.config/zellij"
+            fi
         fi
 
         # fzf-zellij
@@ -42,6 +50,12 @@ case "$ACTION" in
         if [[ ! -f "$HOME/.config/zellij/plugins/zellij_forgot.wasm" ]]; then
             echo "Installing zellij-forgot plugin..."
             curl -L https://github.com/karimould/zellij-forgot/releases/latest/download/zellij_forgot.wasm -o "$HOME/.config/zellij/plugins/zellij_forgot.wasm"
+        fi
+
+        # zjstatus plugin
+        if [[ ! -f "$HOME/.config/zellij/plugins/zjstatus.wasm" ]]; then
+            echo "Installing zjstatus plugin..."
+            curl -L https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm -o "$HOME/.config/zellij/plugins/zjstatus.wasm"
         fi
         ;;
     no)

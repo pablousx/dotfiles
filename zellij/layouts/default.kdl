@@ -1,0 +1,22 @@
+layout {
+    pane size=1 borderless=true {
+        plugin location="tab-bar"
+    }
+    pane borderless=true
+    pane size=1 borderless=true {
+        plugin location="status-bar"
+    }
+    floating_panes {
+        pane x="90%" y=0 width="10%" height=1 borderless=true {
+            plugin location="file:~/.config/zellij/plugins/zjstatus.wasm" {
+                format_left "{command_remote}"
+                format_space ""
+
+                command_remote_command "sh -c \"if [ \\\"$(hostname)\\\" != 'PCP-PC' ]; then echo '#[fg=#1e1e2e,bg=#f9e2af,bold] REMOTE '; fi\""
+                command_remote_format "{stdout}"
+                command_remote_interval "0"
+                command_remote_rendermode "static"
+            }
+        }
+    }
+}

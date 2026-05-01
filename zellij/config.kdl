@@ -8,7 +8,7 @@ simplified_ui true
 show_startup_tips false
 
 // Use compact layout for the tab bar
-// default_layout "compact"
+default_layout "default"
 
 // Enable copy-on-select (copy-on-release)
 copy_on_select true
@@ -19,6 +19,7 @@ ui {
         rounded_corners true
     }
 }
+pane_frames false
 
 themes {
     my_theme {
