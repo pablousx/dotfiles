@@ -7,6 +7,9 @@ simplified_ui true
 // Disable the "About Zellij" startup tips
 show_startup_tips false
 
+// Disable session resurrection to prevent "zombie" EXITED sessions
+session_serialization false
+
 // Use compact layout for the tab bar
 default_layout "default"
 
@@ -48,8 +51,8 @@ themes {
             emphasis_3 203 166 247
         }
         text_selected {
-            base 192 192 192
-            background 30 30 46
+            base 205 214 244
+            background 88 91 112
             emphasis_0 243 139 168
             emphasis_1 249 226 175
             emphasis_2 137 180 250
@@ -148,6 +151,12 @@ keybinds {
                 floating true
                 ignore_case true
                 quick_jump true
+            }
+        }
+        bind "Alt w" {
+            LaunchOrFocusPlugin "session-manager" {
+                floating true
+                move_to_focused_tab true
             }
         }
         bind "Alt f" {
