@@ -1,6 +1,11 @@
 # Ensure DOTFILES_DIR is set (fallback to current directory if sourced directly)
 export DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${(%):-%x}")" && pwd)}"
 
+# Set ZSH_CACHE_DIR for plugins that expect it (like OMZ plugins)
+export ZSH_CACHE_DIR="$DOTFILES_DIR/.cache/zsh"
+mkdir -p "$ZSH_CACHE_DIR/completions"
+
+
 # Add deno completions to search path
 if [[ ":$FPATH:" != *":$DOTFILES_DIR/completions:"* ]]; then export FPATH="$DOTFILES_DIR/completions:$FPATH"; fi
 export HOME_ZSHRC="$HOME/.zshrc"
@@ -80,7 +85,7 @@ if [[ $DISABLE_PROMPT != true ]]; then
 fi
 
 # Loading fzf
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+# [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # fzf-tab styles
 zstyle ':completion:*' menu no

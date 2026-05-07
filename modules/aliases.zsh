@@ -70,9 +70,10 @@ fzf() {
 if [[ -z "$ZELLIJ" ]] && command -v zellij &> /dev/null; then
     if [[ "$(hostname)" != "PCP-PC" ]]; then
         # On VPS: use 'REMOTE' as session name for indicator
-        zellij attach -c REMOTE 2>/dev/null || zellij --session REMOTE
+        exec zellij attach -c REMOTE 2>/dev/null || exec zellij --session REMOTE
     else
         # On Local: standard auto-start
+        export ZELLIJ_AUTO_EXIT=true
         eval "$(zellij setup --generate-auto-start zsh)"
     fi
 fi

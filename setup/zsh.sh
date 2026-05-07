@@ -31,9 +31,13 @@ case "$ACTION" in
             git clone --depth=1 https://github.com/mattmc3/antidote.git "$DOTFILES_DIR/.antidote"
         fi
 
+        # Prepare Cache Directory for plugins
+        ZSH_CACHE_DIR="$DOTFILES_DIR/.cache/zsh"
+        mkdir -p "$ZSH_CACHE_DIR/completions"
+
         # Bundle plugins
         if [[ -f "$DOTFILES_DIR/.antidote/antidote.zsh" ]]; then
-            zsh -c "source \"$DOTFILES_DIR/.antidote/antidote.zsh\" && antidote bundle < \"$DOTFILES_DIR/modules/plugins.txt\" > \"$DOTFILES_DIR/modules/plugins.zsh\""
+            zsh -c "export ZSH_CACHE_DIR=\"$ZSH_CACHE_DIR\" && source \"$DOTFILES_DIR/.antidote/antidote.zsh\" && antidote bundle < \"$DOTFILES_DIR/modules/plugins.txt\" > \"$DOTFILES_DIR/modules/plugins.zsh\""
         fi
 
         if [[ ! -f "$DOTFILES_DIR/.env" && -f "$DOTFILES_DIR/.env.example" ]]; then
