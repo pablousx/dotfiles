@@ -68,13 +68,25 @@ fzf() {
 
 # Auto-start Zellij
 if [[ -z "$ZELLIJ" ]] && command -v zellij &> /dev/null; then
+    local session_name
     if [[ "$(hostname)" != "PCP-PC" ]]; then
         # On VPS: use 'REMOTE' as session name for indicator
-        exec zellij attach -c REMOTE 2>/dev/null || exec zellij --session REMOTE
+        session_name="REMOTE"
     else
-        # On Local: standard auto-start
-        export ZELLIJ_AUTO_EXIT=true
-        eval "$(zellij setup --generate-auto-start zsh)"
+        # On Local: Group sessions by directory name
+        session_name="z-$(basename "$PWD" | tr '.' '_')"
+    fi
+
+    # Attach to or create the named session
+    zellij attach -c "$session_name"
+
+    # Give the server a moment to update status after client disconnects
+    sleep 0.2
+
+    # After Zellij returns, check if the session is still alive (detached)
+    # or if it was killed/exited (quit).
+    if ! zellij list-sessions --no-formatting 2>/dev/null | awk -v sn="$session_name" '$1 == sn && !/EXITED/ {f=1} END {exit !f}'; then
+        exit
     fi
 fi
 
