@@ -71,10 +71,10 @@ if [[ -z "$ZELLIJ" ]] && command -v zellij &> /dev/null; then
     local session_name
     if [[ "$(hostname)" != "PCP-PC" ]]; then
         # On VPS: use 'REMOTE' as session name for indicator
-        session_name="REMOTE"
+        session_name="REMOTE-$$"
     else
         # On Local: Group sessions by directory name
-        session_name="z-$(basename "$PWD" | tr '.' '_')"
+        session_name="z-$(basename "$PWD" | tr '.' '_')-$$"
     fi
 
     # Attach to or create the named session
