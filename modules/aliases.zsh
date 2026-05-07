@@ -80,13 +80,17 @@ if [[ -z "$ZELLIJ" ]] && command -v zellij &> /dev/null; then
     # Attach to or create the named session
     zellij attach -c "$session_name"
 
-    # Give the server a moment to update status after client disconnects
+    # Give the server a moment to update status
     sleep 0.2
 
-    # After Zellij returns, check if the session is still alive (detached)
-    # or if it was killed/exited (quit).
-    if ! zellij list-sessions --no-formatting 2>/dev/null | awk -v sn="$session_name" '$1 == sn && !/EXITED/ {f=1} END {exit !f}'; then
-        exit
+    # Portable check: Only exit if we can confirm the session is gone or EXITED.
+    # We strip ANSI colors to ensure the session name match works.
+    local session_list
+    session_list=$(zellij list-sessions 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g')
+    if [[ $? -eq 0 ]]; then
+        if ! echo "$session_list" | grep -E "^${session_name}\s" | grep -qv "EXITED"; then
+            exit
+        fi
     fi
 fi
 
