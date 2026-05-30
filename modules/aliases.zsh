@@ -1,6 +1,14 @@
 # Core
 alias dotfiles='/usr/bin/git --git-dir=$DOTFILES_DIR --work-tree=$DOTFILES_DIR'
 
+# Socket Firewall (sfw) overrides
+alias npm="sfw npm"
+alias npx="sfw npx"
+alias pnpm="sfw pnpm"
+alias pnpx="sfw pnpx"
+alias yarn="sfw yarn"
+alias bun="sfw bun"
+
 # Npm
 alias ni="npm install"
 alias nd="npm run dev"
