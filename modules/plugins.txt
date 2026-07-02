@@ -19,8 +19,8 @@ ohmyzsh/ohmyzsh path:plugins/sudo
 # Window Title — dynamically updates the terminal tab title
 olets/zsh-window-title
 
-# Command Not Found — suggests the apt package to install for unknown commands
-ohmyzsh/ohmyzsh path:plugins/command-not-found
+# Command Not Found — suggests the apt package to install for unknown commands (Loaded conditionally in platform.zsh)
+# ohmyzsh/ohmyzsh path:plugins/command-not-found
 
 # Fzf — fzf keybindings and fuzzy completion
 ohmyzsh/ohmyzsh path:plugins/fzf
@@ -67,8 +67,8 @@ g-plane/pnpm-shell-completion
 # Yarn — yarn aliases (ya, yad, yb, ys, etc.)
 ohmyzsh/ohmyzsh path:plugins/yarn
 
-# Ubuntu — apt/apt-get aliases and helpers (age, agi, agr, aguu, etc.)
-ohmyzsh/ohmyzsh path:plugins/ubuntu
+# Ubuntu — apt/apt-get aliases and helpers (age, agi, agr, aguu, etc.) (Loaded conditionally in platform.zsh)
+# ohmyzsh/ohmyzsh path:plugins/ubuntu
 
 # Copy file — copyfile <file>: pipes a file's content directly to clipboard
 ohmyzsh/ohmyzsh path:plugins/copyfile

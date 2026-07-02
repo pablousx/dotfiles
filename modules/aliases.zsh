@@ -1,14 +1,6 @@
 # Core
 alias dotfiles='/usr/bin/git --git-dir=$DOTFILES_DIR --work-tree=$DOTFILES_DIR'
 
-# Socket Firewall (sfw) overrides
-alias npm="sfw npm"
-alias npx="sfw npx"
-alias pnpm="sfw pnpm"
-alias pnpx="sfw pnpx"
-alias yarn="sfw yarn"
-alias bun="sfw bun"
-
 # Npm
 alias ni="npm install"
 alias nd="npm run dev"
@@ -45,8 +37,11 @@ alias dev="cd ~/dev"
 alias lc="colorls --sd -A"
 alias sql="$HOME/sqlcl/bin/sql"
 
-# WSL / Windows specific
-if grep -qi microsoft /proc/version 2>/dev/null; then
+# WSL / Windows / macOS specific
+if [[ "$(uname)" == "Darwin" ]]; then
+  # macOS has its own native 'open' command; do nothing/keep it native
+  :
+elif grep -qi microsoft /proc/version 2>/dev/null; then
   alias open="powershell.exe -Command Start"
 else
   alias open="xdg-open 2>/dev/null"

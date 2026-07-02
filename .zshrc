@@ -18,14 +18,16 @@ FNM_PATH="$HOME/.local/share/fnm"
 if [ -d "$FNM_PATH" ]; then
   export PATH="$FNM_PATH:$PATH"
 fi
-export PNPM_HOME="/home/pablousx/.local/share/pnpm"
+export PNPM_HOME="$HOME/.local/share/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 
 # SSH Environment Configuration
-source $HOME/.ssh/sync-ssh-env.sh
+if [[ -f $HOME/.ssh/sync-ssh-env.sh ]]; then
+  source $HOME/.ssh/sync-ssh-env.sh
+fi
 
 # ================= MODULES =================
 
@@ -94,8 +96,19 @@ zstyle ':fzf-tab:*' switch-group '<' '>'
 
 # fzf-tab previews
 # Directory previews (ls)
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color=always $realpath'
-zstyle ':fzf-tab:complete:ls:*' fzf-preview 'ls --color=always $realpath'
+if [[ "$(uname)" == "Darwin" ]]; then
+  # Use gls (GNU ls from brew coreutils) if available, otherwise fallback to BSD ls -G
+  if command -v gls &>/dev/null; then
+    zstyle ':fzf-tab:complete:cd:*' fzf-preview 'gls --color=always $realpath'
+    zstyle ':fzf-tab:complete:ls:*' fzf-preview 'gls --color=always $realpath'
+  else
+    zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -G $realpath'
+    zstyle ':fzf-tab:complete:ls:*' fzf-preview 'ls -G $realpath'
+  fi
+else
+  zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color=always $realpath'
+  zstyle ':fzf-tab:complete:ls:*' fzf-preview 'ls --color=always $realpath'
+fi
 
 # File previews (cat/head)
 zstyle ':fzf-tab:complete:(cat|nano|open|vi|vim):*' fzf-preview '[[ -f $realpath ]] && head -n 20 $realpath'
@@ -115,13 +128,18 @@ zstyle ':fzf-tab:complete:git-show:*' fzf-preview 'git show --color=always $word
 zstyle ':fzf-tab:complete:git-checkout:*' fzf-preview '[ -f "$realpath" ] && git diff "$word" || git log -n 5 --graph --color=always "$word"'
 
 # Systemd previews
-zstyle ':fzf-tab:complete:systemctl-*:*' fzf-preview 'systemctl status $word'
+if command -v systemctl &>/dev/null; then
+  zstyle ':fzf-tab:complete:systemctl-*:*' fzf-preview 'systemctl status $word'
+fi
 
 # PLUGINS - Antidote
 if [[ $DISABLE_PLUGINS != true ]]; then
   fpath=($DOTFILES_DIR/.antidote/functions $fpath)
   autoload -Uz antidote
   source $DOTFILES_DIR/modules/plugins.zsh
+  if [[ -f $DOTFILES_DIR/modules/platform.zsh ]]; then
+    source $DOTFILES_DIR/modules/platform.zsh
+  fi
 fi
 
 # PRINT ALIAS COMPLETION

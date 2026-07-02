@@ -10,12 +10,31 @@ case "$ACTION" in
 
         # Zellij
         if ! command -v zellij &> /dev/null && [[ ! -f "$HOME/.local/bin/zellij" ]]; then
-            echo "Downloading zellij..."
-            URL=$(curl -s -H "User-Agent: curl" https://api.github.com/repos/zellij-org/zellij/releases/latest | grep "browser_download_url.*x86_64-unknown-linux-musl.tar.gz" | head -n 1 | cut -d '"' -f 4)
-            if [[ -n "$URL" ]]; then
-                curl -L "$URL" | tar -xz -C "$HOME/.local/bin"
+            if [[ "$(uname)" == "Darwin" ]]; then
+                if command -v brew &>/dev/null; then
+                    echo "Installing Zellij via Homebrew..."
+                    brew install zellij
+                else
+                    echo "Downloading zellij for macOS..."
+                    arch_suffix="x86_64-apple-darwin.tar.gz"
+                    if [[ "$(uname -m)" == "arm64" ]]; then
+                        arch_suffix="aarch64-apple-darwin.tar.gz"
+                    fi
+                    URL=$(curl -s -H "User-Agent: curl" https://api.github.com/repos/zellij-org/zellij/releases/latest | grep "browser_download_url.*$arch_suffix" | head -n 1 | cut -d '"' -f 4)
+                    if [[ -n "$URL" ]]; then
+                        curl -L "$URL" | tar -xz -C "$HOME/.local/bin"
+                    else
+                        echo "Error: Could not find Zellij download URL."
+                    fi
+                fi
             else
-                echo "Error: Could not find Zellij download URL. You might be rate-limited by GitHub API."
+                echo "Downloading zellij..."
+                URL=$(curl -s -H "User-Agent: curl" https://api.github.com/repos/zellij-org/zellij/releases/latest | grep "browser_download_url.*x86_64-unknown-linux-musl.tar.gz" | head -n 1 | cut -d '"' -f 4)
+                if [[ -n "$URL" ]]; then
+                    curl -L "$URL" | tar -xz -C "$HOME/.local/bin"
+                else
+                    echo "Error: Could not find Zellij download URL. You might be rate-limited by GitHub API."
+                fi
             fi
         fi
 

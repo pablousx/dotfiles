@@ -19,8 +19,12 @@ case "$ACTION" in
 
         # Change shell
         if command -v zsh &>/dev/null; then
-            CURRENT_SHELL=$(getent passwd "$USER" | cut -d: -f7)
-            if [[ "$CURRENT_SHELL" != "$(which zsh)" ]]; then
+            if [[ "$(uname)" == "Darwin" ]]; then
+                current_shell=$(dscl . -read "/Users/$USER" UserShell | awk '{print $2}')
+            else
+                current_shell=$(getent passwd "$USER" | cut -d: -f7)
+            fi
+            if [[ "$current_shell" != "$(which zsh)" ]]; then
                 echo "Changing default shell to zsh..."
                 sudo chsh -s "$(which zsh)" "$(whoami)"
             fi
@@ -48,7 +52,15 @@ case "$ACTION" in
         PNPM_COMPLETION_DIR="$HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-g-plane-SLASH-pnpm-shell-completion"
         if [[ -d "$PNPM_COMPLETION_DIR" && ! -f "$PNPM_COMPLETION_DIR/pnpm-shell-completion" ]]; then
             echo "Downloading pnpm-shell-completion binary..."
-            URL=$(curl -s -H "User-Agent: curl" https://api.github.com/repos/g-plane/pnpm-shell-completion/releases/latest | grep "browser_download_url.*x86_64-unknown-linux-gnu.tar.gz" | head -n 1 | cut -d '"' -f 4)
+            arch_suffix="x86_64-unknown-linux-gnu.tar.gz"
+            if [[ "$(uname)" == "Darwin" ]]; then
+                if [[ "$(uname -m)" == "arm64" ]]; then
+                    arch_suffix="aarch64-apple-darwin.tar.gz"
+                else
+                    arch_suffix="x86_64-apple-darwin.tar.gz"
+                fi
+            fi
+            URL=$(curl -s -H "User-Agent: curl" https://api.github.com/repos/g-plane/pnpm-shell-completion/releases/latest | grep "browser_download_url.*$arch_suffix" | head -n 1 | cut -d '"' -f 4)
             if [[ -n "$URL" ]]; then
                 curl -L "$URL" | tar -xz -C "$PNPM_COMPLETION_DIR/"
                 chmod +x "$PNPM_COMPLETION_DIR/pnpm-shell-completion"
