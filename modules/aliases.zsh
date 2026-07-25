@@ -47,56 +47,6 @@ else
   alias open="xdg-open 2>/dev/null"
 fi
 
-# Zellij
-alias zj="zellij"
-alias za="zellij attach"
-alias zl="zellij list-sessions"
-alias zka="zellij kill-all-sessions"
-
-# fzf-zellij: Open fzf in a Zellij floating pane when inside Zellij
-fzf() {
-   case "$1" in
-      --bash|--zsh|--fish|--version|-h|--help|--man)
-         command fzf "$@"
-         ;;
-      *)
-         if [[ -n "$ZELLIJ" ]]; then
-            fzf-zellij "$@"
-         else
-            command fzf "$@"
-         fi
-         ;;
-   esac
-}
-
-# Auto-start Zellij
-if [[ -z "$ZELLIJ" ]] && command -v zellij &> /dev/null; then
-    local session_name
-    if [[ "$(hostname)" != "PCP-PC" ]]; then
-        # On VPS: use 'REMOTE' as session name for indicator
-        session_name="REMOTE-$$"
-    else
-        # On Local: Group sessions by directory name
-        session_name="z-$(basename "$PWD" | tr '.' '_')-$$"
-    fi
-
-    # Attach to or create the named session
-    zellij attach -c "$session_name"
-
-    # Give the server a moment to update status
-    sleep 0.2
-
-    # Portable check: Only exit if we can confirm the session is gone or EXITED.
-    # We strip ANSI colors to ensure the session name match works.
-    local session_list
-    session_list=$(zellij list-sessions 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g')
-    if [[ $? -eq 0 ]]; then
-        if ! echo "$session_list" | grep -E "^${session_name}\s" | grep -qv "EXITED"; then
-            exit
-        fi
-    fi
-fi
-
 alias reload="exec zsh"
 alias bundle-plugins="antidote bundle < $DOTFILES_DIR/modules/plugins.txt > $DOTFILES_DIR/modules/plugins.zsh && reload"
 

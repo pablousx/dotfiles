@@ -28,8 +28,7 @@ echo
 OPT_CORE=$(prompt_option "1. Would you like to install core dependencies? (zsh, git, curl, fzf, etc.)" "yes")
 OPT_FNM=$(prompt_option "2. Would you like to set up FNM & Node.js?" "yes")
 OPT_XXH=$(prompt_option "3. Would you like to set up XXH (Portable Shell)?" "yes")
-OPT_ZELLIJ=$(prompt_option "4. Would you like to set up Zellij & Plugins?" "yes")
-OPT_ZSH=$(prompt_option "5. Would you like to configure the Zsh Environment & Plugins?" "yes")
+OPT_ZSH=$(prompt_option "4. Would you like to configure the Zsh Environment & Plugins?" "yes")
 
 echo
 echo "========================================"
@@ -37,8 +36,7 @@ echo "Final Confirmation:"
 echo "  1. Core Dependencies: $OPT_CORE"
 echo "  2. FNM & Node.js:     $OPT_FNM"
 echo "  3. XXH:               $OPT_XXH"
-echo "  4. Zellij & Plugins:  $OPT_ZELLIJ"
-echo "  5. Zsh Environment:   $OPT_ZSH"
+echo "  4. Zsh Environment:   $OPT_ZSH"
 echo "========================================"
 echo
 
@@ -57,7 +55,6 @@ REPO_ROOT=$(realpath "$(dirname "$0")")
 chmod +x "$REPO_ROOT/setup/core.sh"
 chmod +x "$REPO_ROOT/setup/fnm.sh"
 chmod +x "$REPO_ROOT/setup/xxh.sh"
-chmod +x "$REPO_ROOT/setup/zellij.sh"
 chmod +x "$REPO_ROOT/setup/zsh.sh"
 
 # Execute setups
@@ -65,7 +62,6 @@ echo "Executing setup steps..."
 bash "$REPO_ROOT/setup/core.sh" "$OPT_CORE"
 bash "$REPO_ROOT/setup/fnm.sh" "$OPT_FNM"
 bash "$REPO_ROOT/setup/xxh.sh" "$OPT_XXH"
-bash "$REPO_ROOT/setup/zellij.sh" "$OPT_ZELLIJ"
 bash "$REPO_ROOT/setup/zsh.sh" "$OPT_ZSH"
 
 echo
