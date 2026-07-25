@@ -3,7 +3,7 @@
 # =============================================================================
 
 # Powerlevel10k — feature-rich, blazing-fast prompt with instant prompt support
-romkatv/powerlevel10k
+romkatv/powerlevel10k path:powerlevel10k.zsh-theme pin:9253fb1c5034410c43a0c681ff8294181c54016c
 
 
 # =============================================================================
@@ -11,109 +11,109 @@ romkatv/powerlevel10k
 # =============================================================================
 
 # You Should Use — reminds you of shorter aliases when you type the full command
-MichaelAquilina/zsh-you-should-use
+MichaelAquilina/zsh-you-should-use pin:5f3d129864ee4505043d88c3486224f1d75b692e
 
 # Sudo — press ESC twice to prepend "sudo" to the current or last command
-ohmyzsh/ohmyzsh path:plugins/sudo
+ohmyzsh/ohmyzsh path:plugins/sudo pin:59a9740721b734835812121322d6fe4827b0853a
 
 # Window Title — dynamically updates the terminal tab title
-olets/zsh-window-title
+olets/zsh-window-title pin:f859d445d416385abcf4a4d5460ce7c48d4bddf9
 
 # Command Not Found — suggests the apt package to install for unknown commands (Loaded conditionally in platform.zsh)
 # ohmyzsh/ohmyzsh path:plugins/command-not-found
 
 # Fzf — fzf keybindings and fuzzy completion
-ohmyzsh/ohmyzsh path:plugins/fzf
+ohmyzsh/ohmyzsh path:plugins/fzf pin:59a9740721b734835812121322d6fe4827b0853a
 
 # =============================================================================
 # GIT & GITHUB
 # =============================================================================
 
 # Git — extensive git aliases (gst, gco, gcm, gp, gl, glog, etc.)
-ohmyzsh/ohmyzsh path:plugins/git
+ohmyzsh/ohmyzsh path:plugins/git pin:59a9740721b734835812121322d6fe4827b0853a
 
 # GitHub CLI — tab completions for the gh command
-ohmyzsh/ohmyzsh path:plugins/gh
+ohmyzsh/ohmyzsh path:plugins/gh pin:59a9740721b734835812121322d6fe4827b0853a
 
 # Gitignore — `gi python` generates a .gitignore via gitignore.io
-ohmyzsh/ohmyzsh path:plugins/gitignore
+ohmyzsh/ohmyzsh path:plugins/gitignore pin:59a9740721b734835812121322d6fe4827b0853a
 
 # =============================================================================
 # COMPLETIONS
 # =============================================================================
 
 # fzf-tab — replaces the default completion menu with an fzf dropdown
-Aloxaf/fzf-tab
+Aloxaf/fzf-tab pin:24105b15714bfec37989ed5c5b6e60f572253019
 
 # Additional completions — hundreds of extra completion definitions
-zsh-users/zsh-completions
+zsh-users/zsh-completions path:src kind:fpath pin:9903bae60284072de3fa0e3e20965f22368c5694
 
 # Docker — official Docker CLI tab completions
-docker/cli path:contrib/completion/zsh/_docker
+docker/cli path:contrib/completion/zsh/_docker pin:7a54334eb038871b45c2377baf8c12beaa14839c
 
 # Docker Compose — dco, dcup, dcdown, dce aliases
-ohmyzsh/ohmyzsh path:plugins/docker-compose
+ohmyzsh/ohmyzsh path:plugins/docker-compose pin:59a9740721b734835812121322d6fe4827b0853a
 
 # AWS CLI — completions and environment helpers for the aws command
-ohmyzsh/ohmyzsh path:plugins/aws
+ohmyzsh/ohmyzsh path:plugins/aws pin:59a9740721b734835812121322d6fe4827b0853a
 
 # npm — npm script aliases (npmg, npmS, etc.)
-ohmyzsh/ohmyzsh path:plugins/npm
+ohmyzsh/ohmyzsh path:plugins/npm pin:59a9740721b734835812121322d6fe4827b0853a
 
 # pnpm — advanced completions for pnpm --filter and workspace scripts (Manually installed binary)
-g-plane/pnpm-shell-completion
+g-plane/pnpm-shell-completion pin:d5c061ea860a40db698bb7b2481b49d9950ee7a1
 
 
 # Yarn — yarn aliases (ya, yad, yb, ys, etc.)
-ohmyzsh/ohmyzsh path:plugins/yarn
+ohmyzsh/ohmyzsh path:plugins/yarn pin:59a9740721b734835812121322d6fe4827b0853a
 
 # Ubuntu — apt/apt-get aliases and helpers (age, agi, agr, aguu, etc.) (Loaded conditionally in platform.zsh)
 # ohmyzsh/ohmyzsh path:plugins/ubuntu
 
 # Copy file — copyfile <file>: pipes a file's content directly to clipboard
-ohmyzsh/ohmyzsh path:plugins/copyfile
+ohmyzsh/ohmyzsh path:plugins/copyfile pin:59a9740721b734835812121322d6fe4827b0853a
 
 # Copy path — copypath: copies current directory path to clipboard
-ohmyzsh/ohmyzsh path:plugins/copypath
+ohmyzsh/ohmyzsh path:plugins/copypath pin:59a9740721b734835812121322d6fe4827b0853a
 
 # =============================================================================
 # UTILITIES
 # =============================================================================
 
 # Extract — `x archive.tar.gz` extracts any archive format automatically
-ohmyzsh/ohmyzsh path:plugins/extract
+ohmyzsh/ohmyzsh path:plugins/extract pin:59a9740721b734835812121322d6fe4827b0853a
 
 # Colored man pages — adds syntax highlighting to man page output
-ohmyzsh/ohmyzsh path:plugins/colored-man-pages
+ohmyzsh/ohmyzsh path:plugins/colored-man-pages pin:59a9740721b734835812121322d6fe4827b0853a
 
 # Dotenv — auto-sources .env file when you cd into a directory
 # ohmyzsh/ohmyzsh path:plugins/dotenv
 
 # Encode64 — e64 / d64 to base64 encode and decode strings
-ohmyzsh/ohmyzsh path:plugins/encode64
+ohmyzsh/ohmyzsh path:plugins/encode64 pin:59a9740721b734835812121322d6fe4827b0853a
 
 # JSON tools — pp_json, is_json, urlencode_json, urldecode_json
-ohmyzsh/ohmyzsh path:plugins/jsontools
+ohmyzsh/ohmyzsh path:plugins/jsontools pin:59a9740721b734835812121322d6fe4827b0853a
 
 # URL tools — urlencode / urldecode strings inline
-ohmyzsh/ohmyzsh path:plugins/urltools
+ohmyzsh/ohmyzsh path:plugins/urltools pin:59a9740721b734835812121322d6fe4827b0853a
 
 # History — h (history), hs (grep history), hsi (case-insensitive grep)
-ohmyzsh/ohmyzsh path:plugins/history
+ohmyzsh/ohmyzsh path:plugins/history pin:59a9740721b734835812121322d6fe4827b0853a
 
 # Aliases — als <pattern> to search all defined aliases interactively
-ohmyzsh/ohmyzsh path:plugins/aliases
+ohmyzsh/ohmyzsh path:plugins/aliases pin:59a9740721b734835812121322d6fe4827b0853a
 
 # =============================================================================
 # ESSENTIALS — load these last
 # =============================================================================
 
 # Autopair — auto-closes brackets, quotes and other delimiters as you type
-hlissner/zsh-autopair
+hlissner/zsh-autopair pin:449a7c3d095bc8f3d78cf37b9549f8bb4c383f3d
 
 # Autosuggestions — fish-like inline suggestions from your history as you type
-zsh-users/zsh-autosuggestions
+zsh-users/zsh-autosuggestions pin:85919cd1ffa7d2d5412f6d3fe437ebdbeeec4fc5
 
 # Syntax Highlighting — real-time command coloring; MUST be loaded last
-zsh-users/zsh-syntax-highlighting
+zsh-users/zsh-syntax-highlighting pin:1d85c692615a25fe2293bdd44b34c217d5d2bf04
 # zdharma-continuum/fast-syntax-highlighting

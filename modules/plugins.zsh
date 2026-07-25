@@ -1,6 +1,4 @@
-fpath+=( "$HOME/.cache/antidote/github.com/romkatv/powerlevel10k" )
 source "$HOME/.cache/antidote/github.com/romkatv/powerlevel10k/powerlevel10k.zsh-theme"
-source "$HOME/.cache/antidote/github.com/romkatv/powerlevel10k/powerlevel9k.zsh-theme"
 fpath+=( "$HOME/.cache/antidote/github.com/MichaelAquilina/zsh-you-should-use" )
 source "$HOME/.cache/antidote/github.com/MichaelAquilina/zsh-you-should-use/zsh-you-should-use.plugin.zsh"
 fpath+=( "$HOME/.cache/antidote/github.com/ohmyzsh/ohmyzsh/plugins/sudo" )
@@ -17,8 +15,7 @@ fpath+=( "$HOME/.cache/antidote/github.com/ohmyzsh/ohmyzsh/plugins/gitignore" )
 source "$HOME/.cache/antidote/github.com/ohmyzsh/ohmyzsh/plugins/gitignore/gitignore.plugin.zsh"
 fpath+=( "$HOME/.cache/antidote/github.com/Aloxaf/fzf-tab" )
 source "$HOME/.cache/antidote/github.com/Aloxaf/fzf-tab/fzf-tab.plugin.zsh"
-fpath+=( "$HOME/.cache/antidote/github.com/zsh-users/zsh-completions" )
-source "$HOME/.cache/antidote/github.com/zsh-users/zsh-completions/zsh-completions.plugin.zsh"
+fpath+=( "$HOME/.cache/antidote/github.com/zsh-users/zsh-completions/src" )
 source "$HOME/.cache/antidote/github.com/docker/cli/contrib/completion/zsh/_docker"
 fpath+=( "$HOME/.cache/antidote/github.com/ohmyzsh/ohmyzsh/plugins/docker-compose" )
 source "$HOME/.cache/antidote/github.com/ohmyzsh/ohmyzsh/plugins/docker-compose/docker-compose.plugin.zsh"

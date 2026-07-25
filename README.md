@@ -1,165 +1,174 @@
 # Dotfiles
 
-A comprehensive ZSH configuration with modular architecture, featuring Powerlevel10k prompt, extensive plugin management, and productivity aliases.
+A modular Zsh environment for macOS, Linux, and WSL. It includes a
+Powerlevel10k prompt, Antidote-managed plugins, cached completions, FNM-based
+Node.js switching, and an optional portable XXH shell.
 
-## Overview
+## Installation
 
-This dotfiles repository manages a customized ZSH environment with the following components:
-
-### Core Components
-
-- **Shell**: ZSH with optimized completion system
-- **Prompt**: [Powerlevel10k](https://github.com/romkatv/powerlevel10k) with Pure-style configuration
-- **Plugin Manager**: [Antidote](https://antidote.sh//) for fast plugin loading
-- **Node Version Manager**: [fnm](https://github.com/Schniz/fnm) with automatic version switching
-- **Portable Shell**: [xxh](https://github.com/xxh/xxh) for carrying your shell environment over SSH
-
-### Module System
-
-The configuration is split into modular components in `modules`:
-
-- `modules/aliases.zsh` - Command shortcuts and custom functions
-- `modules/bitwarden-ssh-agent.zsh` - SSH agent integration with Bitwarden
-- `modules/expand-alias.zsh` - Automatic alias expansion in command line
-- `modules/plugins.zsh` - Plugin loader (generated from `modules/plugins.txt`)
-- `modules/plugins.txt` - Plugin definitions for Antidote
-- `modules/print-alias-completion.zsh` - Alias suggestions during completion
-- `modules/prompt.zsh` - Powerlevel10k initialization
-
-### Configuration Files
-
-- `.zshrc` - Main configuration entry point
-- `.p10k.zsh` - Powerlevel10k prompt configuration
-- `.env` - Module enable/disable flags (gitignored)
-- `.env.example` - Environment configuration template
-- `setup-bw-ssh-agent.sh` - Bitwarden SSH agent setup script
-
-### Installation
-
-The first step is to clone the dotfiles repository:
+Clone the repository anywhere; setup records the actual checkout path.
 
 ```sh
-git clone https://github.com/pablousx/dotfiles.git $HOME/dotfiles && cd $HOME/dotfiles
+git clone https://github.com/pablousx/dotfiles.git
+cd dotfiles
+./setup.sh
 ```
 
-Then, run the setup script:
+The interactive installer only installs selected components. Answering “no”
+leaves the existing system untouched.
+
+The normal workflow is simply:
 
 ```sh
-zsh setup.sh
+./setup.sh
 ```
 
-This will install node 24.12.0 by default. You can also set the desired version by running:
+It prompts for each installation component, all five shell-module settings,
+shows a final summary, and asks for confirmation before changing anything.
+Advanced non-interactive flags remain available through `./setup.sh --help`,
+but they are not needed for normal setup.
+
+The default Node.js version is `24.12.0`. Override pinned tool versions when
+needed:
 
 ```sh
-export NODE_VERSION=24.12.0
-zsh setup.sh
+NODE_VERSION=24.12.0 FNM_VERSION=1.39.0 ./setup.sh --fnm
 ```
 
-Alternatively, you can manually execute the steps below:
+Homebrew must already be installed on macOS. On Linux, core setup supports
+APT, DNF, Pacman, and Zypper. WSL uses the detected Linux package manager.
+
+## Safe removal
+
+Removal is deliberately separate from installation:
 
 ```sh
-# Install prerequisites
-sudo apt update
-sudo apt install zsh git curl nano unzip
-
-# Install fnm (Node version manager)
-NODE_VERSION=${NODE_VERSION:-24.12.0}
-curl -fsSL https://fnm.vercel.app/install | bash
-fnm install $NODE_VERSION
-fnm default $NODE_VERSION
-
-# Configure dotfiles directory
-DOTFILES_DIR=$HOME/dotfiles
-
-touch $HOME/.zshrc
-if ! grep -q "DOTFILES_DIR=$DOTFILES_DIR" $HOME/.zshrc; then
-  echo "DOTFILES_DIR=$DOTFILES_DIR" >> $HOME/.zshrc
-fi
-if ! grep -q "source \$DOTFILES_DIR/.zshrc" $HOME/.zshrc; then
-  echo "source \$DOTFILES_DIR/.zshrc" >> $HOME/.zshrc
-fi
-
-# Set ZSH as default shell
-chsh -s $(which zsh)
-
-# Install Antidote
-git clone --depth=1 https://github.com/mattmc3/antidote.git $DOTFILES_DIR/.antidote
-
-# Bundle plugins
-source $DOTFILES_DIR/.antidote/antidote.zsh
-antidote bundle < $DOTFILES_DIR/modules/plugins.txt > $DOTFILES_DIR/modules/plugins.zsh
-
-# Copy and configure environment
-cp .env.example .env
-
-# Restart terminal
-exec zsh
+./uninstall.sh
 ```
 
-### Configuration
+The uninstaller asks which components to remove, defaults every answer to
+“no,” shows the removal plan, and requires an explicit confirmation. It only
+removes tool directories marked as created by this repository. It does not
+remove system packages, shell startup files, Node projects, XXH connection
+state, or committed repository files.
 
-Edit `.env` to enable/disable modules.
+## Configuration layout
 
-### Key Aliases
+- `.zshrc` — main startup sequence, completion cache, history, and module loading
+- `.zshenv` — login-shell settings installed through `~/.zshenv`
+- `.p10k.zsh` — Powerlevel10k configuration
+- `.env` — local feature flags copied from `.env.example`
+- `modules/aliases.zsh` — local aliases and helper functions
+- `modules/plugins.txt` — pinned Antidote plugin manifest
+- `modules/plugins.zsh` — generated, committed plugin loader
+- `modules/platform.zsh` — macOS and distribution-specific integrations
+- `setup/` — component installers and shared platform helpers
+- `tests/run.sh` — syntax and clean-startup smoke tests
+
+Supported `.env` flags are:
 
 ```sh
-# Dotfiles management
-dotfiles <git command>      # Git operations for dotfiles
-xxhh <host>                 # Connect via xxh with portable ZSH environment
-
-# DuckDuckGo search
-duck <search terms>         # Search DuckDuckGo
-
-# Google search
-google <search terms>       # Search Google
-
-# NPM/Pnpm/Yarn shortcuts
-ni/pi/yi                   # npm/yarn/pnpm install
-nd/pd/yd                   # npm/yarn/pnpm dev
-nb/pb/yb                   # npm/yarn/pnpm build
-ns/ps/ys                   # npm/yarn/pnpm start
-# Navigation
-c <path>                # Open in VS Code
-dev                     # cd ~/dev
-cx                      # cd ..
-
-# Configuration
-reload                  # Restart ZSH
-zsh-config              # Edit .zshrc and reload
-zsh-aliases             # Edit aliases and reload
-zsh-plugins          # Rebuild plugin cache and reload
+DISABLE_ALIASES=false
+DISABLE_PROMPT=false
+DISABLE_PLUGINS=false
+DISABLE_PRINT_ALIAS_COMPLETION=false
+DISABLE_EXPAND_ALIAS=false
 ```
 
-### 🚀 Portable Zsh (xxh)
+They correspond to these setup options:
 
-This project includes a high-performance, seamless integration for `xxh`, allowing you to take your entire Zsh environment (aliases, P10k theme, and plugins) to any remote host without leaving a trace.
+| Environment variable | Enable option | Disable option |
+| --- | --- | --- |
+| `DISABLE_ALIASES` | `--enable-aliases` | `--disable-aliases` |
+| `DISABLE_PROMPT` | `--enable-prompt` | `--disable-prompt` |
+| `DISABLE_PLUGINS` | `--enable-plugins` | `--disable-plugins` |
+| `DISABLE_PRINT_ALIAS_COMPLETION` | `--enable-print-alias-completion` | `--disable-print-alias-completion` |
+| `DISABLE_EXPAND_ALIAS` | `--enable-expand-alias` | `--disable-expand-alias` |
 
-- **Fast Connections**: By default, `xxhh` uses a local build cache for instant logins.
-- **Auto-Sync**: Your local aliases and Zsh options are automatically "compiled" into the remote session.
-- **Cache Control**: If you've changed your local config and want to force a clean sync, just add `+if`.
+Environment variables override `.env`, allowing temporary minimal shells:
 
-```bash
-# Connect normally (fast)
+```sh
+DISABLE_PLUGINS=true DISABLE_PROMPT=true zsh
+```
+
+History is stored at `${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history`. The
+old repository-local history is copied there automatically on first startup.
+
+## Common commands
+
+```sh
+dotfiles status             # Run Git against this repository
+bundle-plugins              # Regenerate the pinned plugin loader and restart
+upload-dotfiles             # Commit tracked changes and push the current branch
+
+ni / nd / nb / ns           # npm install/dev/build/start
+pni / pnd / pnb / pns       # pnpm install/dev/build/start
+yi / yd / yb / ys           # Yarn install/dev/build/start
+
+zsh-config                  # Edit the main Zsh configuration and restart
+zsh-aliases                 # Edit aliases and restart
+zsh-plugins                 # Edit, regenerate, and restart
+reload                      # Replace the current process with a fresh Zsh
+```
+
+`upload-dotfiles` stages tracked files only. It refuses detached HEADs, does
+not create empty commits, and stops if commit or push fails.
+
+## Plugin updates
+
+Plugins and Antidote are pinned to full commits for reproducible installs.
+Update one plugin deliberately:
+
+```sh
+./scripts/update-plugin-pin.sh owner/repository 40-character-commit
+```
+
+The command fetches the requested commit, updates every matching manifest
+entry, and regenerates `modules/plugins.zsh`.
+
+## Portable XXH shell
+
+Install XXH support:
+
+```sh
+./setup.sh --xxh
+```
+
+Connect with the portable Zsh environment:
+
+```sh
 xxhh user@host
-
-# Force a clean rebuild and re-install (slow, used after config changes)
-xxhh user@host +if
+xxhh user@host +if   # force XXH to reinstall the local plugin
 ```
 
-### Updating
+The XXH payload uses pinned Powerlevel10k, autosuggestion, and highlighting
+sources. Its build excludes nested Git repositories, tests, documentation,
+and images, and derives its manifest version from a content hash.
+
+Rebuild it with:
 
 ```sh
-# Sync dotfiles
-upload-dotfiles         # Commits and pushes changes
-
-# Update Powerlevel10k
-p10k configure          # Reconfigure prompt
+make xxh-build
 ```
 
-## Features
+## Validation
 
-- **Fast startup**: Optimized completion caching and lazy loading
-- **Git integration**: Enhanced git status in prompt with dirty state indicators
-- **URL quoting**: Automatic URL escaping in paste operations
-- **Command correction**: Auto-correction suggestions for mistyped commands
-- **Smart completion**: Context-aware completions with fzf integration
+Run all local checks:
+
+```sh
+make check
+```
+
+The checks cover Bash and Zsh syntax, setup argument handling, clean startup,
+environment overrides, third-party completion discovery, the Git helper,
+completion caching, XXH payload hygiene, whitespace, and ShellCheck when it is
+installed. CI runs the suite on Ubuntu and macOS.
+
+## Security and reproducibility
+
+- FNM and pnpm completion binaries use pinned release URLs and SHA-256 hashes.
+- Antidote and all shell plugins are pinned to full Git commits.
+- XXH is installed at a fixed version in an isolated virtual environment.
+- Setup stops immediately when a component fails.
+- Local `.env` text is not evaluated as shell code; only known boolean flags
+  are accepted.

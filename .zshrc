@@ -1,104 +1,166 @@
-# Ensure DOTFILES_DIR is set (fallback to current directory if sourced directly)
-export DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$(dirname "${(%):-%x}")" && pwd)}"
+# Powerlevel10k instant prompt must stay close to the top of this file.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
 
-# Set ZSH_CACHE_DIR for plugins that expect it (like OMZ plugins)
+# Resolve the repository when this file is sourced directly.
+export DOTFILES_DIR="${DOTFILES_DIR:-${${(%):-%x}:A:h}}"
 export ZSH_CACHE_DIR="$DOTFILES_DIR/.cache/zsh"
 mkdir -p "$ZSH_CACHE_DIR/completions"
 
+# Load known boolean settings without evaluating arbitrary shell text. Existing
+# environment variables win, which makes one-off overrides predictable.
+_dotfiles_load_env() {
+  local env_file="$1" key value
+  [[ -r "$env_file" ]] || return 0
 
-# Add deno completions to search path
-if [[ ":$FPATH:" != *":$DOTFILES_DIR/completions:"* ]]; then export FPATH="$DOTFILES_DIR/completions:$FPATH"; fi
-export HOME_ZSHRC="$HOME/.zshrc"
-export ZSHRC="$DOTFILES_DIR/.zshrc"
+  while IFS='=' read -r key value; do
+    [[ -n "$key" && "$key" != \#* ]] || continue
+    value="${value%$'\r'}"
+    case "$key" in
+      DISABLE_ALIASES|DISABLE_PROMPT|DISABLE_PLUGINS|DISABLE_PRINT_ALIAS_COMPLETION|DISABLE_EXPAND_ALIAS)
+        [[ "$value" == true || "$value" == false ]] || {
+          print -u2 "Ignoring invalid boolean in $env_file: $key=$value"
+          continue
+        }
+        (( ${+parameters[$key]} )) || export "$key=$value"
+        ;;
+      *)
+        print -u2 "Ignoring unknown setting in $env_file: $key"
+        ;;
+    esac
+  done < "$env_file"
+}
+_dotfiles_load_env "$DOTFILES_DIR/.env"
+unfunction _dotfiles_load_env
 
-# Path Configuration
-export PATH="$HOME/.local/bin:$PATH"
-export PATH="$HOME/.opencode/bin:$PATH"
-FNM_PATH="$HOME/.local/share/fnm"
-if [ -d "$FNM_PATH" ]; then
-  export PATH="$FNM_PATH:$PATH"
-fi
+# Paths
+typeset -U path PATH
+path=(
+  "$HOME/.local/bin"
+  "$HOME/.opencode/bin"
+  "$HOME/.local/share/pnpm"
+  $path
+)
 export PNPM_HOME="$HOME/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
 
-# SSH Environment Configuration
-if [[ -f $HOME/.ssh/sync-ssh-env.sh ]]; then
-  source $HOME/.ssh/sync-ssh-env.sh
+FNM_PATH="$HOME/.local/share/fnm"
+[[ -d "$FNM_PATH" ]] && path=("$FNM_PATH" $path)
+
+fpath=("$DOTFILES_DIR/completions" $fpath)
+if [[ -d "$DOTFILES_DIR/.antidote/functions" ]]; then
+  fpath=("$DOTFILES_DIR/.antidote/functions" $fpath)
 fi
 
-# ================= MODULES =================
+# zsh-completions must be visible before compinit scans fpath.
+ANTIDOTE_HOME="${ANTIDOTE_HOME:-$HOME/.cache/antidote}"
+zsh_completions_dir="$ANTIDOTE_HOME/github.com/zsh-users/zsh-completions/src"
+[[ -d "$zsh_completions_dir" ]] && fpath=("$zsh_completions_dir" $fpath)
+unset zsh_completions_dir
 
-# Enable or disable modules creating a ./.env file (copy ./.env.example to ./.env)
-if [[ -f $DOTFILES_DIR/.env ]]; then
-  export $(grep -v '^#' $DOTFILES_DIR/.env | xargs)
-fi
+# Completion initialization: run the security audit once per day and reuse the
+# explicit cache between audits.
+_dotfiles_compinit() {
+  autoload -Uz compinit
+  local dump_file="$ZSH_CACHE_DIR/zcompdump-$ZSH_VERSION"
+  local -a stale_dump
+  stale_dump=("$dump_file"(N.mh+24))
 
-# Optimizing auto-completion
-autoload -Uz compinit
-if [[ -n $DOTFILES_DIR/.zcompdump(N.mh+24) ]]; then
-  compinit
-else
-  compinit -C
-fi
+  if [[ ! -s "$dump_file" || ${#stale_dump} -gt 0 ]]; then
+    compinit -d "$dump_file"
+    zcompile -R -- "$dump_file.zwc" "$dump_file" 2>/dev/null || true
+  else
+    compinit -C -d "$dump_file"
+  fi
+}
+_dotfiles_compinit
+unfunction _dotfiles_compinit
 
-# ================= COMPLETION ENGINE SETTINGS =================
-# Use LS_COLORS for completions
+# Completion presentation
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
-
-# Group completions by type
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*:descriptions' format '%F{blue}-- %d --%f'
 zstyle ':completion:*:corrections' format '%F{yellow}!- %d (errors: %e) -!%f'
 zstyle ':completion:*:messages' format '%F{purple} -- %d --%f'
 zstyle ':completion:*:warnings' format '%F{red}No matches for:%f %d'
+zstyle ':completion:*' matcher-list \
+  'm:{a-zA-Z}={A-Za-z}' \
+  'r:|[._-]=* r:|=*' \
+  'l:|=* r:|=*'
+zstyle ':completion:*' menu no
 
-# Smart matching (Case-insensitive, partial-word, and substring)
-# 0: exact match, 1: case-insensitive, 2: partial-word, 3: substring
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+# Shell options
+setopt GLOB_DOTS
+setopt NUMERIC_GLOB_SORT
+setopt NO_BEEP
+setopt INTERACTIVE_COMMENTS
+setopt MAGIC_EQUAL_SUBST
+setopt NOTIFY
+setopt AUTO_RESUME
+setopt LONG_LIST_JOBS
+setopt AUTO_CD
+setopt AUTO_PUSHD
+setopt PUSHD_IGNORE_DUPS
+setopt PUSHD_SILENT
 
-# Automatically select the first element of fzf-tab
-zstyle ':fzf-tab:*' fzf-preview-window 'right:60%'
+# History lives outside the repository. Preserve the old history on first use.
+ZSH_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/zsh"
+mkdir -p "$ZSH_STATE_DIR"
+HISTFILE="$ZSH_STATE_DIR/history"
+if [[ ! -e "$HISTFILE" && -f "$DOTFILES_DIR/.zsh_history" ]]; then
+  command cp -p "$DOTFILES_DIR/.zsh_history" "$HISTFILE"
+fi
+touch "$HISTFILE"
+chmod 0600 "$HISTFILE"
+HISTSIZE=50000
+SAVEHIST=50000
+setopt EXTENDED_HISTORY
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_VERIFY
+setopt SHARE_HISTORY
 
-# ================= ZSH OPTIONS =================
-setopt GLOB_DOTS              # Match hidden files with globs
-setopt NUMERIC_GLOB_SORT      # Sort filenames numerically (1, 2, 10 instead of 1, 10, 2)
-setopt NO_BEEP                # Shut up
-setopt INTERACTIVE_COMMENTS   # Allow comments in interactive shell
-setopt MAGIC_EQUAL_SUBST      # Expansion after = (e.g. --prefix=~/bin)
-setopt NOTIFY                 # Report status of background jobs immediately
-setopt AUTO_RESUME            # Resume existing job if typing its name
-setopt LONG_LIST_JOBS         # List jobs in the long format by default
-
-# Automatically quote URLs when pasted
-autoload -Uz url-quote-magic
-zle -N self-insert url-quote-magic
-
-# ALIASES - Source aliases definition
-if [[ $DISABLE_ALIASES != true ]]; then
-  source $DOTFILES_DIR/modules/aliases.zsh
+# Machine-specific SSH agent synchronization.
+if [[ -r "$HOME/.ssh/sync-ssh-env.sh" ]]; then
+  source "$HOME/.ssh/sync-ssh-env.sh"
 fi
 
-# PROMPT - Powerlevel10k
-if [[ $DISABLE_PROMPT != true ]]; then
-  source $DOTFILES_DIR/modules/prompt.zsh
+: "${EDITOR:=nano}"
+export EDITOR
+ENABLE_CORRECTION=true
+
+# Plugins load after compinit; completion-only paths were added above.
+if [[ "${DISABLE_PLUGINS:-false}" != true ]]; then
+  if [[ -r "$DOTFILES_DIR/modules/plugins.zsh" ]]; then
+    source "$DOTFILES_DIR/modules/plugins.zsh"
+  else
+    print -u2 "Plugin bundle missing. Run: bash $DOTFILES_DIR/setup/zsh.sh install $DOTFILES_DIR"
+  fi
+  [[ -r "$DOTFILES_DIR/modules/platform.zsh" ]] && source "$DOTFILES_DIR/modules/platform.zsh"
 fi
 
-# Loading fzf
-# [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+# User modules load after third-party plugins so local definitions win.
+if [[ "${DISABLE_ALIASES:-false}" != true ]]; then
+  source "$DOTFILES_DIR/modules/aliases.zsh"
+fi
+if [[ "${DISABLE_PRINT_ALIAS_COMPLETION:-false}" != true ]]; then
+  source "$DOTFILES_DIR/modules/print-alias-completion.zsh"
+fi
+if [[ "${DISABLE_EXPAND_ALIAS:-false}" != true ]]; then
+  source "$DOTFILES_DIR/modules/expand-alias.zsh"
+fi
+if [[ "${DISABLE_PROMPT:-false}" != true ]]; then
+  source "$DOTFILES_DIR/modules/prompt.zsh"
+fi
 
 # fzf-tab styles
-zstyle ':completion:*' menu no
+zstyle ':fzf-tab:*' fzf-preview-window 'right:60%'
 zstyle ':fzf-tab:*' fzf-flags --color=fg:1,fg+:2 --bind=tab:accept
 zstyle ':fzf-tab:*' switch-group '<' '>'
 
-# fzf-tab previews
-# Directory previews (ls)
-if [[ "$(uname)" == "Darwin" ]]; then
-  # Use gls (GNU ls from brew coreutils) if available, otherwise fallback to BSD ls -G
-  if command -v gls &>/dev/null; then
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  if command -v gls >/dev/null 2>&1; then
     zstyle ':fzf-tab:complete:cd:*' fzf-preview 'gls --color=always $realpath'
     zstyle ':fzf-tab:complete:ls:*' fzf-preview 'gls --color=always $realpath'
   else
@@ -110,87 +172,43 @@ else
   zstyle ':fzf-tab:complete:ls:*' fzf-preview 'ls --color=always $realpath'
 fi
 
-# File previews (cat/head)
-zstyle ':fzf-tab:complete:(cat|nano|open|vi|vim):*' fzf-preview '[[ -f $realpath ]] && head -n 20 $realpath'
-
-# Command help previews (tldr/man)
-zstyle ':fzf-tab:complete:(-command-|-parameter-|-brace-parameter-|export|unset|expand):*' fzf-preview 'echo ${(P)word}'
-
-# Process previews (kill)
+zstyle ':fzf-tab:complete:(cat|nano|open|vi|vim):*' fzf-preview \
+  '[[ -f $realpath ]] && head -n 20 -- $realpath'
+zstyle ':fzf-tab:complete:(-command-|-parameter-|-brace-parameter-|export|unset|expand):*' \
+  fzf-preview 'echo ${(P)word}'
 zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-preview \
   '[[ $group == "[process ID]" ]] && ps -p $word -o comm,stat,pcpu,pmem'
 zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-flags --preview-window=down:3:wrap
+zstyle ':fzf-tab:complete:git-(add|diff|restore):*' fzf-preview \
+  'git diff -- $word | head -n 20'
+zstyle ':fzf-tab:complete:git-log:*' fzf-preview 'git log -n 1 -- $word'
+zstyle ':fzf-tab:complete:git-show:*' fzf-preview \
+  'git show --color=always -- $word | head -n 20'
+zstyle ':fzf-tab:complete:git-checkout:*' fzf-preview \
+  '[[ -f $realpath ]] && git diff -- $word || git log -n 5 --graph --color=always -- $word'
 
-# Git previews
-zstyle ':fzf-tab:complete:git-(add|diff|restore):*' fzf-preview 'git diff $word | head -n 20'
-zstyle ':fzf-tab:complete:git-log:*' fzf-preview 'git log -n 1 $word'
-zstyle ':fzf-tab:complete:git-show:*' fzf-preview 'git show --color=always $word | head -n 20'
-zstyle ':fzf-tab:complete:git-checkout:*' fzf-preview '[ -f "$realpath" ] && git diff "$word" || git log -n 5 --graph --color=always "$word"'
-
-# Systemd previews
-if command -v systemctl &>/dev/null; then
-  zstyle ':fzf-tab:complete:systemctl-*:*' fzf-preview 'systemctl status $word'
+if command -v systemctl >/dev/null 2>&1; then
+  zstyle ':fzf-tab:complete:systemctl-*:*' fzf-preview 'systemctl status -- $word'
 fi
 
-# PLUGINS - Antidote
-if [[ $DISABLE_PLUGINS != true ]]; then
-  fpath=($DOTFILES_DIR/.antidote/functions $fpath)
-  autoload -Uz antidote
-  source $DOTFILES_DIR/modules/plugins.zsh
-  if [[ -f $DOTFILES_DIR/modules/platform.zsh ]]; then
-    source $DOTFILES_DIR/modules/platform.zsh
-  fi
-fi
+# Quote pasted URLs while avoiding expensive highlighting during bracketed paste.
+autoload -Uz url-quote-magic
+zle -N self-insert url-quote-magic
 
-# PRINT ALIAS COMPLETION
-if [[ $DISABLE_PRINT_ALIAS_COMPLETION != true ]]; then
-  source $DOTFILES_DIR/modules/print-alias-completion.zsh
-fi
-
-# EXPAND ALIAS
-if [[ $DISABLE_EXPAND_ALIAS != true ]]; then
-  source $DOTFILES_DIR/modules/expand-alias.zsh
-fi
-
-# ================= CONFIGURATION =================
-# Default Editor
-export EDITOR="nano"
-
-# Enable command auto-correction
-ENABLE_CORRECTION="true"
-
-# ================= HISTORY =================
-HISTFILE="$DOTFILES_DIR/.zsh_history"
-HISTSIZE=50000
-SAVEHIST=50000
-setopt EXTENDED_HISTORY        # save timestamp and duration
-setopt HIST_EXPIRE_DUPS_FIRST  # expire duplicates first when trimming
-setopt HIST_IGNORE_DUPS        # don't record duplicate of previous command
-setopt HIST_IGNORE_SPACE       # skip commands starting with a space
-setopt HIST_VERIFY             # show expanded history before running
-setopt SHARE_HISTORY           # share history across all sessions
-
-# ================= DIRECTORIES =================
-setopt AUTO_CD                 # type a directory name to cd into it
-setopt AUTO_PUSHD              # cd pushes to directory stack
-setopt PUSHD_IGNORE_DUPS       # no duplicate entries in stack
-setopt PUSHD_SILENT            # don't print stack on pushd/popd
-
-# ================= TWEAKS =================
-
-#Fix slowness of pastes with zsh-syntax-highlighting.zsh
 pasteinit() {
   OLD_SELF_INSERT=${${(s.:.)widgets[self-insert]}[2,3]}
   zle -N self-insert url-quote-magic
 }
 
 pastefinish() {
-  zle -N self-insert $OLD_SELF_INSERT
+  zle -N self-insert "$OLD_SELF_INSERT"
 }
 
 zstyle :bracketed-paste-magic paste-init pasteinit
 zstyle :bracketed-paste-magic paste-finish pastefinish
 
-if [ -d "$FNM_PATH" ]; then
-  eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
+if [[ -x "$FNM_PATH/fnm" ]]; then
+  eval "$("$FNM_PATH/fnm" env --use-on-cd --version-file-strategy=recursive --shell zsh)"
+elif command -v fnm >/dev/null 2>&1; then
+  eval "$(fnm env --use-on-cd --version-file-strategy=recursive --shell zsh)"
 fi

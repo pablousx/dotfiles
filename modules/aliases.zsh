@@ -1,5 +1,7 @@
 # Core
-alias dotfiles='/usr/bin/git --git-dir=$DOTFILES_DIR --work-tree=$DOTFILES_DIR'
+dotfiles() {
+  command git -C "$DOTFILES_DIR" "$@"
+}
 
 # Npm
 alias ni="npm install"
@@ -48,7 +50,16 @@ else
 fi
 
 alias reload="exec zsh"
-alias bundle-plugins="antidote bundle < $DOTFILES_DIR/modules/plugins.txt > $DOTFILES_DIR/modules/plugins.zsh && reload"
+bundle-plugins() {
+  local generated="$DOTFILES_DIR/modules/plugins.zsh.tmp"
+  if antidote bundle < "$DOTFILES_DIR/modules/plugins.txt" > "$generated"; then
+    command mv "$generated" "$DOTFILES_DIR/modules/plugins.zsh"
+    exec zsh
+  else
+    command rm -f "$generated"
+    return 1
+  fi
+}
 
 alias zsh-config="$EDITOR $DOTFILES_DIR/.zshrc && reload"
 alias zsh-aliases="$EDITOR $DOTFILES_DIR/modules/aliases.zsh && reload"
@@ -76,7 +87,11 @@ timezsh(){
 
 # Upload dotfiles to cloud
 upload-dotfiles(){
-  local current_branch=$(dotfiles rev-parse --abbrev-ref HEAD)
+  local current_branch
+  current_branch="$(dotfiles symbolic-ref --quiet --short HEAD)" || {
+    print -u2 "Cannot upload dotfiles from a detached HEAD."
+    return 1
+  }
   echo "Current branch: $current_branch"
 
   dotfiles status -s
@@ -88,16 +103,22 @@ upload-dotfiles(){
   fi
 
   echo "Uploading dotfiles..."
-  dotfiles add -u # Only add tracked files that have changed
-  dotfiles commit -m "$msg"
-  dotfiles push origin "$current_branch"
+  dotfiles add -u || return
+  if dotfiles diff --cached --quiet; then
+    echo "No tracked changes to commit."
+  else
+    dotfiles commit -m "$msg" || return
+  fi
+  dotfiles push origin "$current_branch" || return
   echo "Done."
 }
 
 # xxh — portable shell for unmanaged remote hosts
 function xxhh() {
   if [[ "$*" == *"+if"* ]]; then
-    rm -rf ~/.xxh/.xxh/plugins/xxh-plugin-zsh-dotfiles* 2>/dev/null
+    local -a stale_plugins
+    stale_plugins=("$HOME"/.xxh/.xxh/plugins/xxh-plugin-zsh-dotfiles*(N))
+    (( ${#stale_plugins} == 0 )) || command rm -rf -- "${stale_plugins[@]}"
   fi
 
   local dot_src="${DOTFILES_DIR:-$HOME/dotfiles}"

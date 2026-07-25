@@ -1,40 +1,121 @@
 #!/usr/bin/env bash
-CDIR="$(cd "$(dirname "$0")" && pwd)"
-SRC_DIR="${XXH_DOTFILES_SRC:-$(cd "$CDIR/../.." && pwd)}"
+
+set -Eeuo pipefail
+
+CDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+SRC_DIR="${XXH_DOTFILES_SRC:-$(cd "$CDIR/../.." && pwd -P)}"
 BUILD_DIR="$CDIR/build"
+CACHE_DIR="${XXH_BUILD_CACHE:-$SRC_DIR/.cache/xxh-sources}"
 
-# Safety Check
-if [ ! -f "$SRC_DIR/.zshrc" ]; then
-    echo "❌ build error: .zshrc not found in $SRC_DIR"
+P10K_REPOSITORY="https://github.com/romkatv/powerlevel10k.git"
+P10K_COMMIT="9253fb1c5034410c43a0c681ff8294181c54016c"
+AUTOSUGGESTIONS_REPOSITORY="https://github.com/zsh-users/zsh-autosuggestions.git"
+AUTOSUGGESTIONS_COMMIT="85919cd1ffa7d2d5412f6d3fe437ebdbeeec4fc5"
+HIGHLIGHTING_REPOSITORY="https://github.com/zsh-users/zsh-syntax-highlighting.git"
+HIGHLIGHTING_COMMIT="1d85c692615a25fe2293bdd44b34c217d5d2bf04"
+
+[[ -f "$SRC_DIR/.zshrc" ]] || {
+    printf 'build error: .zshrc not found in %s\n' "$SRC_DIR" >&2
     exit 1
-fi
+}
+[[ "$BUILD_DIR" == "$CDIR/build" ]] || {
+    printf 'build error: refusing unexpected build directory: %s\n' "$BUILD_DIR" >&2
+    exit 1
+}
 
-mkdir -p "$BUILD_DIR/plugins"
+mkdir -p "$CACHE_DIR"
+STAGE_DIR="$(mktemp -d "$CDIR/.build.XXXXXX")"
+trap 'rm -rf "$STAGE_DIR"' EXIT
+mkdir -p "$STAGE_DIR/plugins"
 
-echo "building xxh-plugin from $SRC_DIR..."
+ensure_checkout() {
+    local repository="$1"
+    local commit="$2"
+    local destination="$3"
 
-# 1. Bundle Theme & Plugins
-[ ! -d "$BUILD_DIR/powerlevel10k" ] && echo "  ↓ cloning p10k..." && git clone -q --depth=1 https://github.com/romkatv/powerlevel10k.git "$BUILD_DIR/powerlevel10k"
-[ ! -d "$BUILD_DIR/plugins/zsh-autosuggestions" ] && echo "  ↓ bundling autosuggestions..." && git clone -q --depth=1 https://github.com/zsh-users/zsh-autosuggestions "$BUILD_DIR/plugins/zsh-autosuggestions"
-[ ! -d "$BUILD_DIR/plugins/zsh-syntax-highlighting" ] && echo "  ↓ bundling syntax-highlighting..." && git clone -q --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting "$BUILD_DIR/plugins/zsh-syntax-highlighting"
+    if [[ ! -d "$destination/.git" ]]; then
+        git clone --filter=blob:none --no-checkout "$repository" "$destination"
+    fi
+    if ! git -C "$destination" cat-file -e "$commit^{commit}" 2>/dev/null; then
+        git -C "$destination" fetch --depth=1 origin "$commit"
+    fi
+    git -C "$destination" checkout --detach "$commit"
+}
 
-# 2. Copy the clean master pluginrc.zsh
-cp "$CDIR/pluginrc.zsh" "$BUILD_DIR/pluginrc.zsh"
+archive_checkout() {
+    local checkout="$1"
+    local commit="$2"
+    local destination="$3"
 
-# 3. Append dynamic parts
+    mkdir -p "$destination"
+    git -C "$checkout" archive "$commit" | tar -x -C "$destination"
+}
+
+printf 'Building XXH plugin from %s...\n' "$SRC_DIR"
+
+ensure_checkout "$P10K_REPOSITORY" "$P10K_COMMIT" "$CACHE_DIR/powerlevel10k"
+ensure_checkout "$AUTOSUGGESTIONS_REPOSITORY" "$AUTOSUGGESTIONS_COMMIT" "$CACHE_DIR/zsh-autosuggestions"
+ensure_checkout "$HIGHLIGHTING_REPOSITORY" "$HIGHLIGHTING_COMMIT" "$CACHE_DIR/zsh-syntax-highlighting"
+
+archive_checkout "$CACHE_DIR/powerlevel10k" "$P10K_COMMIT" "$STAGE_DIR/powerlevel10k"
+archive_checkout \
+    "$CACHE_DIR/zsh-autosuggestions" \
+    "$AUTOSUGGESTIONS_COMMIT" \
+    "$STAGE_DIR/plugins/zsh-autosuggestions"
+archive_checkout \
+    "$CACHE_DIR/zsh-syntax-highlighting" \
+    "$HIGHLIGHTING_COMMIT" \
+    "$STAGE_DIR/plugins/zsh-syntax-highlighting"
+
+# Remove development-only content while retaining licenses and runtime files.
+rm -rf \
+    "$STAGE_DIR/powerlevel10k/.github" \
+    "$STAGE_DIR/powerlevel10k/.vscode" \
+    "$STAGE_DIR/powerlevel10k/config" \
+    "$STAGE_DIR/powerlevel10k/gitstatus/docs" \
+    "$STAGE_DIR/powerlevel10k/gitstatus/src" \
+    "$STAGE_DIR/powerlevel10k/powerlevel10k.png" \
+    "$STAGE_DIR/plugins/zsh-autosuggestions/.github" \
+    "$STAGE_DIR/plugins/zsh-autosuggestions/spec" \
+    "$STAGE_DIR/plugins/zsh-syntax-highlighting/.github" \
+    "$STAGE_DIR/plugins/zsh-syntax-highlighting/docs" \
+    "$STAGE_DIR/plugins/zsh-syntax-highlighting/images" \
+    "$STAGE_DIR/plugins/zsh-syntax-highlighting/tests"
+find "$STAGE_DIR/plugins/zsh-syntax-highlighting/highlighters" \
+    -type d -name test-data -prune -exec rm -rf {} +
+
+cp "$CDIR/pluginrc.zsh" "$STAGE_DIR/pluginrc.zsh"
 {
-  echo -e "\n# --- Core Options ---"
-  grep "^setopt " "$SRC_DIR/.zshrc"
-  echo -e "\n# --- Completion Settings ---"
-  grep "^zstyle " "$SRC_DIR/.zshrc" | grep -v "fzf-preview"
-  echo -e "\n# --- Git Aliases ---"
-  [ -f "$CDIR/git-aliases.zsh" ] && cat "$CDIR/git-aliases.zsh"
-  echo -e "\n# --- General Aliases ---"
-  sed '/^\(function \)\?xxhh().*/,/^}/d' "$SRC_DIR/modules/aliases.zsh"
-} >> "$BUILD_DIR/pluginrc.zsh"
+    printf '\n%s\n' "# --- Core options ---"
+    grep '^setopt ' "$SRC_DIR/.zshrc"
+    printf '\n%s\n' "# --- Completion settings ---"
+    grep '^zstyle ' "$SRC_DIR/.zshrc" | grep -v 'fzf-preview'
+    printf '\n%s\n' "# --- Git aliases ---"
+    cat "$CDIR/git-aliases.zsh"
+    printf '\n%s\n' "# --- Portable aliases ---"
+    cat "$CDIR/portable-aliases.zsh"
+} >> "$STAGE_DIR/pluginrc.zsh"
 
-# 4. Copy P10k config
-[ -f "$SRC_DIR/.p10k.zsh" ] && cp "$SRC_DIR/.p10k.zsh" "$BUILD_DIR/p10k.zsh"
+cp "$SRC_DIR/.p10k.zsh" "$STAGE_DIR/p10k.zsh"
 
-# 5. Update manifest
-echo "{\"name\":\"xxh-plugin-zsh-dotfiles\",\"version\":\"$(date +%s)\"}" > "$CDIR/manifest.json"
+HASH_LIST="$STAGE_DIR/.content-hashes"
+: > "$HASH_LIST"
+while IFS= read -r runtime_file; do
+    printf '%s  %s\n' \
+        "$(git hash-object "$runtime_file")" \
+        "${runtime_file#"$STAGE_DIR"/}" >> "$HASH_LIST"
+done < <(find "$STAGE_DIR" -type f ! -name .content-hashes | LC_ALL=C sort)
+CONTENT_HASH="$(git hash-object "$HASH_LIST")"
+rm "$HASH_LIST"
+
+printf '{"name":"xxh-plugin-zsh-dotfiles","version":"%s"}\n' \
+    "${CONTENT_HASH:0:12}" > "$CDIR/manifest.json"
+cp "$CDIR/manifest.json" "$STAGE_DIR/manifest.json"
+
+rm -rf "$BUILD_DIR"
+mv "$STAGE_DIR" "$BUILD_DIR"
+trap - EXIT
+
+printf 'Built %s files (%s).\n' \
+    "$(find "$BUILD_DIR" -type f | wc -l | tr -d ' ')" \
+    "$(du -sh "$BUILD_DIR" | awk '{print $1}')"

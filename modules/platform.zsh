@@ -1,29 +1,30 @@
-# Platform-specific plugin loading for oh-my-zsh plugins cloned via antidote
+# Platform-specific plugin loading for the shared Oh My Zsh checkout.
 
-OMZ_DIR="$HOME/.cache/antidote/https-COLON--SLASH--SLASH-github.com-SLASH-ohmyzsh-SLASH-ohmyzsh"
+OMZ_DIR="${ANTIDOTE_HOME:-$HOME/.cache/antidote}/github.com/ohmyzsh/ohmyzsh"
 
-if [[ "$(uname)" == "Darwin" ]]; then
-  # macOS-specific plugins
-  if [[ -d "$OMZ_DIR/plugins/macos" ]]; then
-    fpath+=("$OMZ_DIR/plugins/macos")
-    if [[ -f "$OMZ_DIR/plugins/macos/macos.plugin.zsh" ]]; then
+case "$OSTYPE" in
+  darwin*)
+    [[ -r "$OMZ_DIR/plugins/macos/macos.plugin.zsh" ]] &&
       source "$OMZ_DIR/plugins/macos/macos.plugin.zsh"
+    ;;
+  linux*)
+    linux_id=""
+    linux_like=""
+    if [[ -r /etc/os-release ]]; then
+      linux_id="${${(M)${(f)"$(</etc/os-release)"}:#ID=*}#ID=}"
+      linux_id="${linux_id//\"/}"
+      linux_like="${${(M)${(f)"$(</etc/os-release)"}:#ID_LIKE=*}#ID_LIKE=}"
+      linux_like="${linux_like//\"/}"
     fi
-  fi
-else
-  # Linux-specific plugins (Ubuntu)
-  if [[ -d "$OMZ_DIR/plugins/ubuntu" ]]; then
-    fpath+=("$OMZ_DIR/plugins/ubuntu")
-    if [[ -f "$OMZ_DIR/plugins/ubuntu/ubuntu.plugin.zsh" ]]; then
-      source "$OMZ_DIR/plugins/ubuntu/ubuntu.plugin.zsh"
+
+    if [[ "$linux_id" == (ubuntu|debian) || " $linux_like " == *" debian "* ]]; then
+      [[ -r "$OMZ_DIR/plugins/ubuntu/ubuntu.plugin.zsh" ]] &&
+        source "$OMZ_DIR/plugins/ubuntu/ubuntu.plugin.zsh"
+      [[ -r "$OMZ_DIR/plugins/command-not-found/command-not-found.plugin.zsh" ]] &&
+        source "$OMZ_DIR/plugins/command-not-found/command-not-found.plugin.zsh"
     fi
-  fi
-  
-  # Command Not Found helper
-  if [[ -d "$OMZ_DIR/plugins/command-not-found" ]]; then
-    fpath+=("$OMZ_DIR/plugins/command-not-found")
-    if [[ -f "$OMZ_DIR/plugins/command-not-found/command-not-found.plugin.zsh" ]]; then
-      source "$OMZ_DIR/plugins/command-not-found/command-not-found.plugin.zsh"
-    fi
-  fi
-fi
+    unset linux_id linux_like
+    ;;
+esac
+
+unset OMZ_DIR

@@ -1,34 +1,19 @@
 #!/usr/bin/env bash
 
-ACTION=$1
+set -Eeuo pipefail
 
-case "$ACTION" in
-    yes)
-        echo "Installing core dependencies..."
-        if [[ "$(uname)" == "Darwin" ]]; then
-            if ! command -v brew &>/dev/null; then
-                echo "Installing Homebrew..."
-                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            fi
-            brew install git curl nano unzip fzf
-        else
-            sudo apt update
-            sudo apt install -y zsh git curl nano unzip fzf
-        fi
-        ;;
-    no)
-        echo "Removing core dependencies..."
-        if [[ "$(uname)" == "Darwin" ]]; then
-            if command -v brew &>/dev/null; then
-                brew uninstall git curl nano unzip fzf
-            fi
-        else
-            sudo apt remove -y zsh git curl nano unzip fzf
-            sudo apt autoremove -y
-        fi
-        ;;
-    skip)
-        echo "Skipping core dependencies."
-        ;;
-esac
+SETUP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+# shellcheck source=setup/lib.sh
+source "$SETUP_DIR/lib.sh"
 
+ACTION="${1:-}"
+require_action "$ACTION"
+
+if [[ "$ACTION" == "skip" ]]; then
+    log "Skipping core dependencies."
+    exit 0
+fi
+
+manager="$(detect_package_manager)"
+log "Installing core dependencies with $manager..."
+install_core_packages "$manager"

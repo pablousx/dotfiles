@@ -1,36 +1,41 @@
 #!/usr/bin/env bash
 
-ACTION=$1
+set -Eeuo pipefail
 
-case "$ACTION" in
-    yes)
-        echo "Installing xxh (portable shell)..."
-        if ! command -v xxh &>/dev/null; then
-            if command -v brew &>/dev/null; then
-                brew install xxh
-            else
-                sudo apt install -y python3-pip
-                # Use --break-system-packages if on newer debian/ubuntu, but we stick to standard
-                pip3 install xxh-xxh || pip3 install --break-system-packages xxh-xxh
-            fi
-        fi
-        export PATH="$HOME/.local/bin:$PATH"
-        if command -v xxh &>/dev/null; then
-            xxh +I xxh-shell-zsh
-            xxh +I xxh-plugin-zsh-dotfiles+path+$HOME/dotfiles/modules/xxh-plugin
-        else
-            echo "Failed to install or find xxh executable."
-        fi
-        ;;
-    no)
-        echo "Removing xxh..."
-        if command -v brew &>/dev/null; then
-            brew uninstall xxh || true
-        fi
-        pip3 uninstall -y xxh-xxh || pip3 uninstall --break-system-packages -y xxh-xxh || true
-        rm -rf "$HOME/.xxh"
-        ;;
-    skip)
-        echo "Skipping xxh."
-        ;;
-esac
+SETUP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+# shellcheck source=setup/lib.sh
+source "$SETUP_DIR/lib.sh"
+
+ACTION="${1:-}"
+DOTFILES_DIR="${2:-}"
+XXH_VERSION="${XXH_VERSION:-0.8.14}"
+XXH_VENV="${XXH_VENV:-$HOME/.local/share/xxh-dotfiles}"
+LOCAL_BIN="${LOCAL_BIN:-$HOME/.local/bin}"
+
+require_action "$ACTION"
+[[ -n "$DOTFILES_DIR" ]] || die "repository path was not supplied to XXH setup."
+
+if [[ "$ACTION" == "skip" ]]; then
+    log "Skipping XXH."
+    exit 0
+fi
+
+command -v python3 >/dev/null 2>&1 || die "python3 is required to install XXH."
+
+if [[ ! -x "$XXH_VENV/bin/xxh" ]] ||
+    ! "$XXH_VENV/bin/python" -c \
+        "import importlib.metadata; raise SystemExit(importlib.metadata.version('xxh-xxh') != '$XXH_VERSION')" \
+        >/dev/null 2>&1; then
+    log "Installing XXH $XXH_VERSION in an isolated virtual environment..."
+    python3 -m venv "$XXH_VENV"
+    "$XXH_VENV/bin/python" -m pip install --disable-pip-version-check --upgrade pip
+    "$XXH_VENV/bin/python" -m pip install --disable-pip-version-check "xxh-xxh==$XXH_VERSION"
+    printf '%s\n' "$XXH_VERSION" > "$XXH_VENV/.installed-by-dotfiles"
+fi
+
+mkdir -p "$LOCAL_BIN"
+ln -sfn "$XXH_VENV/bin/xxh" "$LOCAL_BIN/xxh"
+export PATH="$LOCAL_BIN:$PATH"
+
+xxh +I xxh-shell-zsh
+xxh +I "xxh-plugin-zsh-dotfiles+path+$DOTFILES_DIR/modules/xxh-plugin"
