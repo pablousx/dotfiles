@@ -2,7 +2,7 @@
 
 A modular Zsh environment for macOS, Linux, and WSL. It includes a
 Powerlevel10k prompt, Antidote-managed plugins, cached completions, FNM-based
-Node.js switching, and an optional portable XXH shell.
+Node.js switching, and cross-platform helpers.
 
 ## Installation
 
@@ -49,8 +49,8 @@ Removal is deliberately separate from installation:
 The uninstaller asks which components to remove, defaults every answer to
 “no,” shows the removal plan, and requires an explicit confirmation. It only
 removes tool directories marked as created by this repository. It does not
-remove system packages, shell startup files, Node projects, XXH connection
-state, or committed repository files.
+remove system packages, shell startup files, Node projects, or committed
+repository files.
 
 ## Configuration layout
 
@@ -126,31 +126,6 @@ Update one plugin deliberately:
 The command fetches the requested commit, updates every matching manifest
 entry, and regenerates `modules/plugins.zsh`.
 
-## Portable XXH shell
-
-Install XXH support:
-
-```sh
-./setup.sh --xxh
-```
-
-Connect with the portable Zsh environment:
-
-```sh
-xxhh user@host
-xxhh user@host +if   # force XXH to reinstall the local plugin
-```
-
-The XXH payload uses pinned Powerlevel10k, autosuggestion, and highlighting
-sources. Its build excludes nested Git repositories, tests, documentation,
-and images, and derives its manifest version from a content hash.
-
-Rebuild it with:
-
-```sh
-make xxh-build
-```
-
 ## Validation
 
 Run all local checks:
@@ -161,14 +136,13 @@ make check
 
 The checks cover Bash and Zsh syntax, setup argument handling, clean startup,
 environment overrides, third-party completion discovery, the Git helper,
-completion caching, XXH payload hygiene, whitespace, and ShellCheck when it is
-installed. CI runs the suite on Ubuntu and macOS.
+completion caching, whitespace, and ShellCheck when it is installed. CI runs
+the suite on Ubuntu and macOS.
 
 ## Security and reproducibility
 
 - FNM and pnpm completion binaries use pinned release URLs and SHA-256 hashes.
 - Antidote and all shell plugins are pinned to full Git commits.
-- XXH is installed at a fixed version in an isolated virtual environment.
 - Setup stops immediately when a component fails.
 - Local `.env` text is not evaluated as shell code; only known boolean flags
   are accepted.

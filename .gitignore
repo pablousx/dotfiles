@@ -3,6 +3,7 @@
 .zsh_history
 !.env.example
 modules/plugins.zsh.tmp
+modules/*/build/
 
 # External
 .antidote/

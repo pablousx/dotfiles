@@ -1,7 +1,4 @@
-.PHONY: check xxh-build
+.PHONY: check
 
 check:
 	./tests/run.sh
-
-xxh-build:
-	./modules/xxh-plugin/build.sh

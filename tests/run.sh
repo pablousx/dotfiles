@@ -22,16 +22,13 @@ bash -n \
     "$REPO_ROOT/setup/core.sh" \
     "$REPO_ROOT/setup/fnm.sh" \
     "$REPO_ROOT/setup/modules.sh" \
-    "$REPO_ROOT/setup/xxh.sh" \
-    "$REPO_ROOT/setup/zsh.sh" \
-    "$REPO_ROOT/modules/xxh-plugin/build.sh"
+    "$REPO_ROOT/setup/zsh.sh"
 pass "Bash syntax"
 
 zsh -n \
     "$REPO_ROOT/.zshenv" \
     "$REPO_ROOT/.zshrc" \
-    "$REPO_ROOT/modules/"*.zsh \
-    "$REPO_ROOT/modules/xxh-plugin/"*.zsh
+    "$REPO_ROOT/modules/"*.zsh
 pass "Zsh syntax"
 
 "$REPO_ROOT/setup.sh" --help | grep -q DISABLE_PRINT_ALIAS_COMPLETION
@@ -43,7 +40,7 @@ pass "setup command validation"
 
 UNINSTALL_HOME="$TEMP_ROOT/uninstall-home"
 mkdir -p "$UNINSTALL_HOME"
-printf '%s\n' n n n > "$TEMP_ROOT/uninstall-input"
+printf '%s\n' n n > "$TEMP_ROOT/uninstall-input"
 HOME="$UNINSTALL_HOME" "$REPO_ROOT/uninstall.sh" \
     < "$TEMP_ROOT/uninstall-input" \
     > "$TEMP_ROOT/uninstall-output"
@@ -127,22 +124,11 @@ COMP_DUMP="$REPO_ROOT/.cache/zsh/zcompdump-$(zsh --version | awk '{print $2}')"
 [[ -s "$COMP_DUMP.zwc" ]] || fail "compiled completion dump was not created"
 pass "completion cache"
 
-if [[ -d "$REPO_ROOT/modules/xxh-plugin/build" ]]; then
-    if find "$REPO_ROOT/modules/xxh-plugin/build" -type d -name .git | grep -q .; then
-        fail "XXH build contains nested Git metadata"
-    fi
-    cmp \
-        "$REPO_ROOT/modules/xxh-plugin/manifest.json" \
-        "$REPO_ROOT/modules/xxh-plugin/build/manifest.json"
-    pass "XXH payload hygiene"
-fi
-
 if command -v shellcheck >/dev/null 2>&1; then
     shellcheck \
         "$REPO_ROOT/setup.sh" \
         "$REPO_ROOT/uninstall.sh" \
         "$REPO_ROOT/setup/"*.sh \
-        "$REPO_ROOT/modules/xxh-plugin/build.sh" \
         "$REPO_ROOT/scripts/"*.sh \
         "$REPO_ROOT/tests/run.sh"
     pass "ShellCheck"

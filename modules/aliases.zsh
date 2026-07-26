@@ -112,15 +112,3 @@ upload-dotfiles(){
   dotfiles push origin "$current_branch" || return
   echo "Done."
 }
-
-# xxh — portable shell for unmanaged remote hosts
-function xxhh() {
-  if [[ "$*" == *"+if"* ]]; then
-    local -a stale_plugins
-    stale_plugins=("$HOME"/.xxh/.xxh/plugins/xxh-plugin-zsh-dotfiles*(N))
-    (( ${#stale_plugins} == 0 )) || command rm -rf -- "${stale_plugins[@]}"
-  fi
-
-  local dot_src="${DOTFILES_DIR:-$HOME/dotfiles}"
-  XXH_DOTFILES_SRC="$dot_src" xxh "$1" +I xxh-plugin-zsh-dotfiles+path+"$dot_src/modules/xxh-plugin" +s zsh "${@:2}"
-}
