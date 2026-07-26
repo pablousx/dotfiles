@@ -4,6 +4,14 @@ A modular Zsh environment for macOS, Linux, and WSL. It includes a
 Powerlevel10k prompt, Antidote-managed plugins, cached completions, FNM-based
 Node.js switching, and cross-platform helpers.
 
+## Companion repository
+
+> [!TIP]
+> **Using native Windows terminals?**
+>
+> See [`winfiles`](https://github.com/pablousx/winfiles) for the PowerShell-based
+> counterpart to this macOS, Linux, and WSL configuration.
+
 ## Installation
 
 Clone the repository anywhere; setup records the actual checkout path.
