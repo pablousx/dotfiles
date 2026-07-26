@@ -42,7 +42,12 @@ _dotfiles_compinit() {
   stale_dump=("$dump_file"(N.mh+24))
 
   if [[ ! -s "$dump_file" || ${#stale_dump} -gt 0 ]]; then
-    compinit -d "$dump_file"
+    if [[ -o interactive ]]; then
+      compinit -d "$dump_file"
+    else
+      # There is no terminal available for compinit's security prompt.
+      compinit -i -d "$dump_file"
+    fi
     zcompile -R -- "$dump_file.zwc" "$dump_file" 2>/dev/null || true
   else
     compinit -C -d "$dump_file"

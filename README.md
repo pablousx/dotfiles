@@ -4,8 +4,6 @@ A modular Zsh environment for macOS, Linux, and WSL. It includes a
 Powerlevel10k prompt, Antidote-managed plugins, cached completions, FNM-based
 Node.js switching, and cross-platform helpers.
 
-## Companion repository
-
 > [!TIP]
 > **Using native Windows terminals?**
 >
