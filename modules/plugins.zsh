@@ -1,4 +1,6 @@
-source "$HOME/.cache/antidote/github.com/romkatv/powerlevel10k/powerlevel10k.zsh-theme"
+if _dotfiles_prompt_enabled; then
+  source "$HOME/.cache/antidote/github.com/romkatv/powerlevel10k/powerlevel10k.zsh-theme"
+fi
 fpath+=( "$HOME/.cache/antidote/github.com/MichaelAquilina/zsh-you-should-use" )
 source "$HOME/.cache/antidote/github.com/MichaelAquilina/zsh-you-should-use/zsh-you-should-use.plugin.zsh"
 fpath+=( "$HOME/.cache/antidote/github.com/ohmyzsh/ohmyzsh/plugins/sudo" )

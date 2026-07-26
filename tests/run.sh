@@ -68,6 +68,19 @@ if bash "$REPO_ROOT/setup/modules.sh" \
 fi
 pass "module configuration persistence"
 
+ENV_ROOT="$TEMP_ROOT/environment-config"
+mkdir -p "$ENV_ROOT"
+printf '%s\n' 'DISABLE_PROMPT=true' > "$ENV_ROOT/.env"
+DOTFILES_DIR="$ENV_ROOT" zsh -dfc '
+    source "$1"
+    [[ "$DISABLE_PROMPT" == true ]]
+' _ "$REPO_ROOT/.zshenv"
+DOTFILES_DIR="$ENV_ROOT" DISABLE_PROMPT=false zsh -dfc '
+    source "$1"
+    [[ "$DISABLE_PROMPT" == false ]]
+' _ "$REPO_ROOT/.zshenv"
+pass "early prompt setting and environment override"
+
 TEST_HOME="$TEMP_ROOT/home"
 TEST_CACHE="$TEST_HOME/.cache"
 TEST_STATE="$TEST_HOME/.local/state"

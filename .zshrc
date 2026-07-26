@@ -1,5 +1,6 @@
 # Powerlevel10k instant prompt must stay close to the top of this file.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+if [[ "${DISABLE_PROMPT:-false}" != true &&
+      -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
@@ -7,32 +8,6 @@ fi
 export DOTFILES_DIR="${DOTFILES_DIR:-${${(%):-%x}:A:h}}"
 export ZSH_CACHE_DIR="$DOTFILES_DIR/.cache/zsh"
 mkdir -p "$ZSH_CACHE_DIR/completions"
-
-# Load known boolean settings without evaluating arbitrary shell text. Existing
-# environment variables win, which makes one-off overrides predictable.
-_dotfiles_load_env() {
-  local env_file="$1" key value
-  [[ -r "$env_file" ]] || return 0
-
-  while IFS='=' read -r key value; do
-    [[ -n "$key" && "$key" != \#* ]] || continue
-    value="${value%$'\r'}"
-    case "$key" in
-      DISABLE_ALIASES|DISABLE_PROMPT|DISABLE_PLUGINS|DISABLE_PRINT_ALIAS_COMPLETION|DISABLE_EXPAND_ALIAS)
-        [[ "$value" == true || "$value" == false ]] || {
-          print -u2 "Ignoring invalid boolean in $env_file: $key=$value"
-          continue
-        }
-        (( ${+parameters[$key]} )) || export "$key=$value"
-        ;;
-      *)
-        print -u2 "Ignoring unknown setting in $env_file: $key"
-        ;;
-    esac
-  done < "$env_file"
-}
-_dotfiles_load_env "$DOTFILES_DIR/.env"
-unfunction _dotfiles_load_env
 
 # Paths
 typeset -U path PATH
@@ -131,6 +106,9 @@ export EDITOR
 ENABLE_CORRECTION=true
 
 # Plugins load after compinit; completion-only paths were added above.
+_dotfiles_prompt_enabled() {
+  [[ "${DISABLE_PROMPT:-false}" != true ]]
+}
 if [[ "${DISABLE_PLUGINS:-false}" != true ]]; then
   if [[ -r "$DOTFILES_DIR/modules/plugins.zsh" ]]; then
     source "$DOTFILES_DIR/modules/plugins.zsh"
@@ -139,6 +117,7 @@ if [[ "${DISABLE_PLUGINS:-false}" != true ]]; then
   fi
   [[ -r "$DOTFILES_DIR/modules/platform.zsh" ]] && source "$DOTFILES_DIR/modules/platform.zsh"
 fi
+unfunction _dotfiles_prompt_enabled
 
 # User modules load after third-party plugins so local definitions win.
 if [[ "${DISABLE_ALIASES:-false}" != true ]]; then

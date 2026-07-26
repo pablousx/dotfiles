@@ -3,7 +3,7 @@
 # =============================================================================
 
 # Powerlevel10k — feature-rich, blazing-fast prompt with instant prompt support
-romkatv/powerlevel10k path:powerlevel10k.zsh-theme pin:9253fb1c5034410c43a0c681ff8294181c54016c
+romkatv/powerlevel10k path:powerlevel10k.zsh-theme conditional:_dotfiles_prompt_enabled pin:9253fb1c5034410c43a0c681ff8294181c54016c
 
 
 # =============================================================================
