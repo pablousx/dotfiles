@@ -35,7 +35,7 @@ read_boolean_setting() {
     if [[ -r "$env_file" ]]; then
         value="$(
             awk -F= -v key="$key" '
-                $1 == key && ($2 == "true" || $2 == "false") { value = $2 }
+                NF == 2 && $1 == key && ($2 == "true" || $2 == "false") { value = $2 }
                 END { print value }
             ' "$env_file"
         )"
@@ -58,21 +58,98 @@ run_as_root() {
     fi
 }
 
-detect_package_manager() {
-    if [[ "$(uname -s)" == "Darwin" ]]; then
-        printf '%s\n' "brew"
-        return
+# Separate host reads from classification so tests can supply isolated fixtures.
+platform_kernel() {
+    uname -s
+}
+
+platform_release_file() {
+    if [[ -r /etc/os-release ]]; then
+        printf '%s\n' /etc/os-release
+    elif [[ -r /usr/lib/os-release ]]; then
+        printf '%s\n' /usr/lib/os-release
+    else
+        die 'cannot detect Linux distribution: no readable os-release file'
     fi
+}
 
-    local manager
-    for manager in apt-get dnf pacman zypper; do
-        if command -v "$manager" >/dev/null 2>&1; then
-            printf '%s\n' "$manager"
-            return
-        fi
+read_os_release_field() {
+    local file="$1" field="$2" key value result=""
+    [[ -r "$file" ]] || die "cannot read distribution metadata: $file"
+    while IFS='=' read -r key value || [[ -n "$key" ]]; do
+        [[ "$key" == "$field" ]] || continue
+        value="${value%$'\r'}"
+        case "$value" in
+            \"*\") value="${value#\"}"; value="${value%\"}" ;;
+            \'*\') value="${value#\'}"; value="${value%\'}" ;;
+        esac
+        result="$value"
+    done < "$file"
+    case "$field" in
+        ID) [[ "$result" =~ ^[a-z0-9._-]+$ ]] || die "missing or invalid ID in $file" ;;
+        ID_LIKE) [[ "$result" =~ ^[a-z0-9._[:space:]-]*$ ]] || die "invalid ID_LIKE in $file" ;;
+        *) die "unsupported os-release field: $field" ;;
+    esac
+    printf '%s\n' "$result"
+}
+
+# Optional arguments are for read-only classification of fixtures/images.
+# Normal setup always reads the running host; environment variables cannot
+# substitute arbitrary distro metadata.
+detect_platform() {
+    local kernel="${1:-$(platform_kernel)}" release_file="${2:-}" id like candidate
+    local -a candidates
+    DETECTED_DISTRO=""
+    DETECTED_MANAGER=""
+    DETECTED_PROFILE=zsh
+    case "$kernel" in
+        Darwin)
+            DETECTED_DISTRO=macos
+            DETECTED_MANAGER=brew
+            return ;;
+        Linux) ;;
+        *) die "unsupported operating system: $kernel (supported: macOS and compatible Linux distributions)" ;;
+    esac
+    [[ -n "$release_file" ]] || release_file="$(platform_release_file)" || return
+    id="$(read_os_release_field "$release_file" ID)" || return
+    like="$(read_os_release_field "$release_file" ID_LIKE)" || return
+    read -r -a candidates <<< "$id $like"
+    for candidate in "${candidates[@]}"; do
+        case "$candidate" in
+            omarchy|arch|archlinux) DETECTED_MANAGER=pacman ;;
+            ubuntu|debian) DETECTED_MANAGER=apt-get ;;
+            fedora|rhel|centos|rocky|almalinux) DETECTED_MANAGER=dnf ;;
+            opensuse|opensuse-leap|opensuse-tumbleweed|suse|sles|sled) DETECTED_MANAGER=zypper ;;
+            *) continue ;;
+        esac
+        break
     done
+    [[ -n "$DETECTED_MANAGER" ]] ||
+        die "unsupported Linux distribution: $id (ID_LIKE: ${like:-none}); supported families: Debian/Ubuntu, Fedora/RHEL, Arch/Omarchy, openSUSE/SUSE"
+    DETECTED_DISTRO="$id"
+    # New Omarchy releases identify themselves; older installs identify as Arch.
+    if [[ "$id" == omarchy || ( "$DETECTED_MANAGER" == pacman &&
+        -r "${OMARCHY_PATH:-/usr/share/omarchy}/default/bash/rc" ) ]]; then
+        DETECTED_DISTRO=omarchy
+        DETECTED_PROFILE=omarchy
+    fi
+}
 
-    die "unsupported platform: install zsh, git, curl, nano, unzip, and fzf manually."
+require_profile_platform() {
+    case "$1" in
+        zsh) ;; # Every detected platform supports the portable Zsh profile.
+        omarchy)
+            [[ "$DETECTED_PROFILE" == omarchy ]] ||
+                die "profile omarchy is incompatible with $DETECTED_DISTRO; use --profile zsh" ;;
+        *) die "unknown profile: $1" ;;
+    esac
+}
+
+detect_package_manager() {
+    detect_platform || return
+    command -v "$DETECTED_MANAGER" >/dev/null 2>&1 ||
+        die "$DETECTED_MANAGER is required for $DETECTED_DISTRO; no alternate package manager will be used"
+    printf '%s\n' "$DETECTED_MANAGER"
 }
 
 install_core_packages() {

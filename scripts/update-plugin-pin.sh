@@ -3,7 +3,7 @@
 set -Eeuo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
-PLUGIN_FILE="$REPO_ROOT/modules/plugins.txt"
+PLUGIN_FILE="$REPO_ROOT/profiles/zsh/modules/plugins.txt"
 REPOSITORY="${1:-}"
 COMMIT="${2:-}"
 
@@ -50,12 +50,12 @@ fi
 mv "$TEMP_FILE" "$PLUGIN_FILE"
 trap - EXIT
 
-generated="$REPO_ROOT/modules/plugins.zsh.tmp"
+generated="$REPO_ROOT/profiles/zsh/modules/plugins.zsh.tmp"
 trap 'rm -f "$generated"' EXIT
 zsh -dfc 'source "$1"; antidote bundle < "$2"' _ \
     "$REPO_ROOT/.antidote/antidote.zsh" \
     "$PLUGIN_FILE" > "$generated"
-mv "$generated" "$REPO_ROOT/modules/plugins.zsh"
+mv "$generated" "$REPO_ROOT/profiles/zsh/modules/plugins.zsh"
 trap - EXIT
 
-printf 'Pinned %s to %s and regenerated modules/plugins.zsh.\n' "$REPOSITORY" "$COMMIT"
+printf 'Pinned %s to %s and regenerated profiles/zsh/modules/plugins.zsh.\n' "$REPOSITORY" "$COMMIT"

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# Adjust every active Hyprland display by the same percentage step.
+set -Eeuo pipefail
+
+step="${1:-}"
+if [[ ! "$step" =~ ^\+[0-9]+%$ && ! "$step" =~ ^[0-9]+%-$ ]]; then
+    printf 'usage: omarchy-brightness-all [+N%%|N%%-]\n' >&2
+    exit 2
+fi
+
+monitors="$(
+    hyprctl monitors -j |
+        jq -r '.[] | select(.disabled == false) | .name'
+)"
+[[ -n "$monitors" ]] || exit 1
+
+failed=0
+while IFS= read -r monitor; do
+    omarchy brightness display --monitor "$monitor" "$step" || failed=1
+done <<< "$monitors"
+exit "$failed"

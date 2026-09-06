@@ -15,23 +15,27 @@ fail() {
     exit 1
 }
 
-bash -n \
-    "$REPO_ROOT/setup.sh" \
-    "$REPO_ROOT/uninstall.sh" \
-    "$REPO_ROOT/setup/lib.sh" \
-    "$REPO_ROOT/setup/core.sh" \
-    "$REPO_ROOT/setup/fnm.sh" \
-    "$REPO_ROOT/setup/modules.sh" \
-    "$REPO_ROOT/setup/zsh.sh"
+for script in "$REPO_ROOT/setup.sh" "$REPO_ROOT/uninstall.sh" \
+    "$REPO_ROOT/setup/"*.sh "$REPO_ROOT/profiles/"*/setup/*.sh \
+    "$REPO_ROOT/tests/"*.sh "$REPO_ROOT/tests/fixtures/"*.sh \
+    "$REPO_ROOT/modules/shared/"*.sh "$REPO_ROOT/modules/bash/"*.bash; do
+    bash -n "$script"
+done
 pass "Bash syntax"
 
-zsh -n \
-    "$REPO_ROOT/.zshenv" \
-    "$REPO_ROOT/.zshrc" \
-    "$REPO_ROOT/modules/"*.zsh
+bash "$REPO_ROOT/tests/platform.sh"
+bash "$REPO_ROOT/tests/omarchy.sh"
+bash "$REPO_ROOT/tests/keyboard.sh"
+bash "$REPO_ROOT/tests/brightness-knob.sh"
+python3 "$REPO_ROOT/tests/starship.py"
+python3 "$REPO_ROOT/tests/terminal.py"
+
+for script in "$REPO_ROOT/.zshenv" "$REPO_ROOT/.zshrc" "$REPO_ROOT/modules/"*.zsh; do
+    zsh -n "$script"
+done
 pass "Zsh syntax"
 
-"$REPO_ROOT/setup.sh" --help | grep -q DISABLE_PRINT_ALIAS_COMPLETION
+"$REPO_ROOT/setup.sh" --profile zsh --help | grep -q DISABLE_PRINT_ALIAS_COMPLETION
 bash "$REPO_ROOT/setup/core.sh" skip >/dev/null
 if bash "$REPO_ROOT/setup/core.sh" invalid >/dev/null 2>&1; then
     fail "invalid setup action was accepted"
@@ -142,8 +146,12 @@ if command -v shellcheck >/dev/null 2>&1; then
         "$REPO_ROOT/setup.sh" \
         "$REPO_ROOT/uninstall.sh" \
         "$REPO_ROOT/setup/"*.sh \
+        "$REPO_ROOT/profiles/"*/setup/*.sh \
         "$REPO_ROOT/scripts/"*.sh \
-        "$REPO_ROOT/tests/run.sh"
+        "$REPO_ROOT/tests/"*.sh \
+        "$REPO_ROOT/tests/fixtures/"*.sh \
+        "$REPO_ROOT/modules/shared/"*.sh \
+        "$REPO_ROOT/modules/bash/"*.bash
     pass "ShellCheck"
 else
     printf 'skip - ShellCheck is not installed\n'

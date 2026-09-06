@@ -27,3 +27,13 @@ jobs:
         run: brew install zsh shellcheck
       - name: Run checks
         run: make check
+
+  omarchy-bash:
+    runs-on: ubuntu-latest
+    container: archlinux:base
+    steps:
+      - name: Install validation tools
+        run: pacman -Syu --noconfirm --needed git bash zsh shellcheck make python starship fzf bash-completion libxkbcommon xkeyboard-config lua
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Check both shells and Omarchy 4.0.0.alpha startup contract
+        run: make check

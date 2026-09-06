@@ -8,3 +8,13 @@ modules/*/build/
 # External
 .antidote/
 .cache/
+
+# Independent Omarchy profile settings
+.env.omarchy
+.env.omarchy.tmp.*
+
+# Backups made when saving local configuration
+*.dotfiles-backup.*
+
+profiles/zsh/modules/plugins.zsh.tmp
+profiles/*/modules/*/build/

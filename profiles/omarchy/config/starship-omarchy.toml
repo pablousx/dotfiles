@@ -1,0 +1,67 @@
+# Two-line Starship prompt for stock Bash.
+add_newline = true
+command_timeout = 500
+format = '$directory$git_branch$git_commit$git_state$git_status$status$jobs$nodejs${custom.pnpm}$python$username$hostname$line_break$character'
+
+[directory]
+style = 'blue'
+truncation_length = 3
+truncate_to_repo = true
+truncation_symbol = '…/'
+
+[git_branch]
+symbol = ''
+format = '[$branch]($style) '
+style = 'green'
+
+[git_status]
+format = '([$all_status$ahead_behind]($style) )'
+style = 'yellow'
+
+[character]
+success_symbol = '[❯](magenta)'
+error_symbol = '[❯](red)'
+vimcmd_symbol = '[❮](magenta)'
+
+[status]
+disabled = false
+symbol = ''
+format = '[exit $status]($style) '
+style = 'red'
+
+[jobs]
+symbol = ''
+number_threshold = 1
+format = '[jobs:$number]($style) '
+
+[nodejs]
+symbol = ''
+format = '[node $version]($style) '
+
+[custom.pnpm]
+command = 'python3 "$DOTFILES_DIR/profiles/omarchy/pnpm-prompt.py"'
+when = 'test -r "$DOTFILES_DIR/profiles/omarchy/pnpm-prompt.py" && command -v python3 >/dev/null 2>&1'
+shell = ['bash', '--noprofile', '--norc']
+format = '[$output]($style) '
+style = 'yellow'
+
+[python]
+symbol = ''
+format = '[($virtualenv )]($style)'
+style = 'bright-black'
+detect_extensions = []
+detect_files = []
+detect_folders = []
+
+[username]
+show_always = false
+format = '[$user]($style)'
+style_user = 'bright-black'
+style_root = 'red'
+
+[hostname]
+ssh_only = false
+# Suppress hostname outside SSH unless running as root.
+detect_env_vars = ['SSH_CONNECTION', 'SSH_CLIENT', 'DOTFILES_ROOT_CONTEXT']
+format = '[@$hostname]($style) '
+style = 'bright-black'

@@ -105,3 +105,41 @@ variables, installation behavior, or common commands change.
 - Generated plugin output matches `modules/plugins.txt`.
 - No system packages or user data were modified during validation.
 - The final report calls out any deliberately untested platform or installer.
+
+## Omarchy / Bash profile
+
+- `setup.sh` defaults to `--profile auto` for interactive and automated use.
+  Detect distro families from os-release without sourcing it; select Omarchy
+  only for Omarchy, otherwise Zsh on supported platforms. Unsupported hosts
+  fail before any changes. `--profile zsh` remains an explicit override.
+- Package-manager selection follows the detected distro, never PATH order.
+  Keep installer code compatible with Bash 3.2. Tests override host-read
+  functions only inside temporary repository copies.
+- Runtime `modules/bash/` targets Omarchy Bash 5. Use stock Bash and existing
+  Omarchy fzf/mise/zoxide/Starship initialization; do not add a shell framework.
+- `.env.omarchy` is user-owned and ignored. Its settings must not alter `.env`.
+- Only the marked `.bashrc` block belongs to the Bash installer/uninstaller.
+  Preserve other content, symlink targets, permissions, and backups.
+- Preserve existing user/Omarchy commands and completions. New helpers have
+  `df-` names; register short forms only if unused.
+- Keep `docs/omarchy-parity.md` aligned with the Zsh plugin manifest and helpers.
+- The Starship preset is selected with `STARSHIP_CONFIG`; explicit user
+  overrides win. Never rewrite Omarchy's own Starship file or packaged defaults.
+- Arch CI validates the versioned Omarchy startup fixture and Starship. Never
+  run a real installer for testing; use temporary homes and mocked commands.
+
+- The optional `--keyboard` component restores `us-altgr-spanish` through
+  user-local XKB symbols and a marked block in `hypr/input.lua`; `--all` remains
+  shell-only. `--save-keyboard` captures only the local symbols file.
+- The optional `--brightness-knob` component installs a user-local helper and
+  a marked block in `hypr/bindings.lua`; interactive setup defaults to leaving
+  it unchanged, and `--all` must not select it.
+- Brightness-knob setup never flashes input hardware. Preserve non-managed
+  bindings, discover active monitors at runtime, and test through mocked
+  `hyprctl` and `omarchy` commands.
+- Keyboard tests must use temporary XDG homes and a mocked `hyprctl`. Real
+  activation must reload Hyprland and check configuration errors.
+- Prompt pnpm context comes from project metadata. Never execute pnpm on the
+  prompt path: version-manager bootstrap can exceed Starship's timeout.
+- Setup prompts describe the selected profile directly; avoid comparisons to
+  another profile's prompt engine or plugin manager.
