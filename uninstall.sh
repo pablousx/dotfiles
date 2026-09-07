@@ -8,7 +8,7 @@ source "$REPO_ROOT/setup/lib.sh"
 
 usage() {
     cat <<'EOF'
-Usage: ./uninstall.sh [--fnm] [--plugins] [--omarchy] [--keyboard] [--brightness-knob]
+Usage: ./uninstall.sh [--mise] [--plugins] [--omarchy] [--keyboard] [--brightness-knob]
 
 With no arguments, the uninstaller prompts for each removable component.
 
@@ -19,6 +19,7 @@ automatically. --omarchy removes only the marked dotfiles block from .bashrc
 --keyboard removes only the marked keyboard activation block from input.lua;
 the saved and installed XKB symbol files are retained.
 --brightness-knob removes its marked bindings block and the unmodified helper.
+--mise removes only the unchanged, marked binary; runtimes and config are retained.
 EOF
 }
 
@@ -39,7 +40,7 @@ prompt_removal() {
     done
 }
 
-REMOVE_FNM=false
+REMOVE_MISE=false
 REMOVE_PLUGINS=false
 REMOVE_OMARCHY=false
 REMOVE_KEYBOARD=false
@@ -49,7 +50,7 @@ if [[ "$#" -eq 0 ]]; then
     printf '%s\n' "========================================"
     printf '%s\n' "  Dotfiles Interactive Uninstall"
     printf '%s\n\n' "========================================"
-    REMOVE_FNM="$(prompt_removal "Remove FNM installed by these dotfiles?")"
+    REMOVE_MISE="$(prompt_removal "Remove mise installed by these dotfiles?")"
     REMOVE_PLUGINS="$(prompt_removal "Remove the local Antidote checkout?")"
     if [[ -f "$HOME/.bashrc" ]] && grep -Fxq '# >>> dotfiles omarchy >>>' "$HOME/.bashrc"; then
         REMOVE_OMARCHY="$(prompt_removal "Remove the marked Omarchy Bash startup block?")"
@@ -66,7 +67,7 @@ if [[ "$#" -eq 0 ]]; then
 else
     for option in "$@"; do
         case "$option" in
-            --fnm) REMOVE_FNM=true ;;
+            --mise) REMOVE_MISE=true ;;
             --plugins) REMOVE_PLUGINS=true ;;
             --omarchy) REMOVE_OMARCHY=true ;;
             --keyboard) REMOVE_KEYBOARD=true ;;
@@ -77,7 +78,7 @@ else
     done
 fi
 
-if [[ "$REMOVE_FNM" == false && "$REMOVE_PLUGINS" == false &&
+if [[ "$REMOVE_MISE" == false && "$REMOVE_PLUGINS" == false &&
     "$REMOVE_OMARCHY" == false && "$REMOVE_KEYBOARD" == false &&
     "$REMOVE_BRIGHTNESS_KNOB" == false ]]; then
     log "No components selected; nothing was removed."
@@ -85,7 +86,7 @@ if [[ "$REMOVE_FNM" == false && "$REMOVE_PLUGINS" == false &&
 fi
 
 printf '%s\n' "Requested removals:"
-[[ "$REMOVE_FNM" == true ]] && printf '%s\n' "  - FNM installed by dotfiles"
+[[ "$REMOVE_MISE" == true ]] && printf '%s\n' "  - mise installed by dotfiles"
 [[ "$REMOVE_PLUGINS" == true ]] && printf '%s\n' "  - repository-local Antidote checkout"
 [[ "$REMOVE_OMARCHY" == true ]] && printf '%s\n' "  - marked Omarchy profile block in .bashrc (settings retained)"
 [[ "$REMOVE_KEYBOARD" == true ]] && printf '%s\n' "  - marked keyboard activation block in input.lua (layout files retained)"
@@ -94,12 +95,14 @@ printf '%s\n' "Requested removals:"
 read -r -p "Type 'uninstall' to continue: " confirmation
 [[ "$confirmation" == "uninstall" ]] || die "uninstall aborted."
 
-if [[ "$REMOVE_FNM" == true ]]; then
-    fnm_dir="$HOME/.local/share/fnm"
-    if [[ -f "$fnm_dir/.installed-by-dotfiles" ]]; then
-        rm -rf "$fnm_dir"
+if [[ "$REMOVE_MISE" == true ]]; then
+    mise_bin="$HOME/.local/bin/mise"
+    marker="$HOME/.local/bin/.mise-installed-by-dotfiles"
+    if [[ -f "$marker" && -f "$mise_bin" && ! -L "$mise_bin" ]] &&
+        [[ "$(cat "$marker")" == "$(sha256_file "$mise_bin")" ]]; then
+        rm -f "$mise_bin" "$marker"
     else
-        log "Skipping FNM: $fnm_dir is not marked as installed by this repository."
+        log "Skipping mise: binary is unmarked or has changed since installation."
     fi
 fi
 

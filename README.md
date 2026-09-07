@@ -2,7 +2,7 @@
 
 A modular Zsh environment for macOS, Linux, and WSL, with an additional
 Omarchy/Bash profile. Zsh uses Powerlevel10k, Antidote, cached completions,
-and FNM. Omarchy keeps stock Bash, fzf, mise, and its existing integrations,
+and mise. Omarchy keeps stock Bash, fzf, mise, and its existing integrations,
 adding shared helpers and a two-line Starship prompt.
 
 > [!TIP]
@@ -37,12 +37,26 @@ shows a final summary, and asks for confirmation before changing anything.
 Advanced non-interactive flags remain available through `./setup.sh --help`,
 but they are not needed for normal setup.
 
-The default Node.js version is `24.12.0`. Override pinned tool versions when
-needed:
+Configuring Zsh automatically installs and configures mise. No separate component
+flag or project conversion is needed. The Zsh profile installs mise `2026.9.0` when it is absent, using a pinned binary
+and SHA-256 verification. Existing mise installations are reused. The default
+Node.js version is `24.12.0`; select another exact version with:
 
 ```sh
-NODE_VERSION=24.12.0 FNM_VERSION=1.39.0 ./setup.sh --fnm
+NODE_VERSION=24.12.0 ./setup.sh
 ```
+
+mise is installed at `~/.local/bin/mise`. Setup runs `mise use --global node@VERSION`,
+which installs Node and records the global default. Zsh runs `mise activate zsh`
+for automatic project switching, including from subdirectories. Setup enables
+`idiomatic_version_file_enable_tools` for Node, so existing `.nvmrc` and
+`.node-version` files work automatically alongside `mise.toml`. No per-project
+`mise use` command is required. Versions must already be installed; run
+`mise install` if a project requests a missing version. See the
+[mise Node documentation](https://mise.jdx.dev/lang/node.html).
+`./uninstall.sh --mise` removes only the marked, unchanged binary installed by
+this repository; it preserves mise configuration, downloaded runtimes, and projects.
+Binary downloads support macOS Intel/Apple Silicon and Linux x64/ARM64/ARMv7.
 
 Homebrew must already be installed for core setup on macOS. Linux detection reads
 `ID` and `ID_LIKE` from `/etc/os-release` (or `/usr/lib/os-release` when needed),
@@ -75,7 +89,7 @@ to explicitly configure Zsh on a supported platform, including Omarchy.
 
 Omarchy must already be installed. This profile targets Bash 5 and preserves
 Omarchy's mise, zoxide, fzf, Bash completion, editor, and history configuration.
-It adds no Zsh or FNM installation and never changes the login shell.
+It uses the existing mise installation and never changes the login shell.
 
 ```sh
 ./setup.sh --profile omarchy       # Interactive setup and final confirmation
@@ -98,7 +112,7 @@ brightness-knob setup are separate and opt-in. Without `--profile`,
 noninteractive commands also use
 the automatically detected profile. Existing automation that needs Zsh on
 Omarchy must pass `--profile zsh` explicitly. The Omarchy profile rejects
-Zsh-only flags such as `--fnm`, `--zsh`, and `--enable-plugins`.
+Zsh-only flags such as `--zsh` and `--enable-plugins`.
 
 Setup backs up `.bashrc` and appends a guarded block after existing configuration.
 Repeated setup does not duplicate it. Keep subsequent personal overrides below
@@ -336,7 +350,7 @@ user configuration are modified. See the parity document for terminal checks.
 
 ## Security and reproducibility
 
-- FNM and pnpm completion binaries use pinned release URLs and SHA-256 hashes.
+- mise and pnpm completion binaries use pinned release URLs and SHA-256 hashes.
 - Antidote and all shell plugins are pinned to full Git commits.
 - Setup stops immediately when a component fails.
 - Local `.env` text is not evaluated as shell code; only known boolean flags

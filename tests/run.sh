@@ -24,6 +24,7 @@ for script in "$REPO_ROOT/setup.sh" "$REPO_ROOT/uninstall.sh" \
 done
 pass "Bash syntax"
 
+bash "$REPO_ROOT/tests/mise.sh"
 bash "$REPO_ROOT/tests/platform.sh"
 bash "$REPO_ROOT/tests/omarchy.sh"
 bash "$REPO_ROOT/tests/keyboard.sh"
@@ -92,7 +93,13 @@ TEST_STATE="$TEST_HOME/.local/state"
 COMPLETION_DIR="$TEST_CACHE/antidote/github.com/zsh-users/zsh-completions/src"
 ZSH_BIN="$(command -v zsh)"
 TEST_PATH="${ZSH_BIN%/*}:/usr/bin:/bin:/usr/sbin:/sbin"
-mkdir -p "$COMPLETION_DIR"
+mkdir -p "$COMPLETION_DIR" "$TEST_HOME/.local/bin"
+cat > "$TEST_HOME/.local/bin/mise" <<'MOCK'
+#!/usr/bin/env bash
+[[ "$*" == 'activate zsh' ]] || exit 1
+printf '%s\n' 'export DOTFILES_MISE_ACTIVATED=true'
+MOCK
+chmod +x "$TEST_HOME/.local/bin/mise"
 printf '%s\n' '#compdef dotfiles-smoke' '_arguments "*:file:_files"' \
     > "$COMPLETION_DIR/_dotfiles-smoke"
 
@@ -112,6 +119,7 @@ env -u FPATH \
     DISABLE_EXPAND_ALIAS=true \
     zsh -dfc '
         source "$DOTFILES_DIR/.zshrc"
+        [[ "$DOTFILES_MISE_ACTIVATED" == true ]]
         [[ "${_comps[dotfiles-smoke]-}" == "_dotfiles-smoke" ]]
         (( ! ${+functions[dotfiles]} ))
     '

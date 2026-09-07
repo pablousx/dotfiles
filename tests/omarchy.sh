@@ -50,7 +50,7 @@ cat > "$TEMP_ROOT/bin/omarchy" <<'MOCK'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "$CALL_LOG"
 MOCK
-for tool in chsh fnm mise pacman sudo git curl zsh; do
+for tool in chsh mise pacman sudo git curl zsh; do
     # The generated mock expands CALL_LOG when executed.
     # shellcheck disable=SC2016
     printf '#!/usr/bin/env bash\nprintf "forbidden: %%s\\n" "%s" >> "$CALL_LOG"\nexit 99\n' "$tool" > "$TEMP_ROOT/bin/$tool"
@@ -61,7 +61,7 @@ PATH="$TEMP_ROOT/bin:$PATH" bash "$repo/setup.sh" --profile omarchy --all --disa
 [[ $(cat "$CALL_LOG") == 'pkg add git curl python bash-completion unzip wl-clipboard' ]]
 grep -qx 'DISABLE_PROMPT=true' "$repo/.env.omarchy"
 grep -qx 'DISABLE_ALIASES=true' "$repo/.env"
-if bash "$repo/setup.sh" --profile omarchy --fnm >/dev/null 2>&1; then exit 1; fi
+if bash "$repo/setup.sh" --profile omarchy --zsh >/dev/null 2>&1; then exit 1; fi
 if bash "$repo/setup.sh" --profile wrong >/dev/null 2>&1; then exit 1; fi
 if bash "$repo/setup.sh" --profile >/dev/null 2>&1; then exit 1; fi
 # EOF must abort rather than select defaults and perform changes.

@@ -65,8 +65,7 @@ For Bash options: ./setup.sh --profile omarchy --help
 
 Components:
   --core       Install core command-line dependencies
-  --fnm        Install FNM and the configured Node.js version
-  --zsh        Configure Zsh and plugins
+  --zsh        Configure Zsh, plugins, mise, and Node.js
   --all        Install every component without prompting
   --configure-modules
                Prompt for all module settings
@@ -89,7 +88,6 @@ EOF
 }
 
 OPT_CORE="skip"
-OPT_FNM="skip"
 OPT_ZSH="skip"
 MODULE_ACTION="skip"
 
@@ -107,11 +105,9 @@ if [[ "$#" -gt 0 ]]; then
         case "$option" in
             --all)
                 OPT_CORE="install"
-                OPT_FNM="install"
                 OPT_ZSH="install"
                 ;;
             --core) OPT_CORE="install" ;;
-            --fnm) OPT_FNM="install" ;;
             --zsh) OPT_ZSH="install" ;;
             --configure-modules) PROMPT_MODULES=true ;;
             --enable-aliases) DISABLE_ALIASES_VALUE=false; MODULE_ACTION="write" ;;
@@ -141,13 +137,11 @@ else
     printf '%s\n\n' "========================================"
 
     OPT_CORE="$(prompt_option "1. Install core dependencies (zsh, git, curl, fzf, etc.)?" "yes")"
-    OPT_FNM="$(prompt_option "2. Install FNM and Node.js?" "yes")"
-    OPT_ZSH="$(prompt_option "3. Configure the Zsh environment and plugins?" "yes")"
+    OPT_ZSH="$(prompt_option "2. Configure Zsh, plugins, mise, and Node.js?" "yes")"
     configure_modules_interactively
 
     printf '\n%s\n' "========================================"
     printf '%-24s %s\n' "Core dependencies:" "$OPT_CORE"
-    printf '%-24s %s\n' "FNM and Node.js:" "$OPT_FNM"
     printf '%-24s %s\n' "Zsh environment:" "$OPT_ZSH"
     printf '%-24s %s\n' "Aliases enabled:" "$([[ "$DISABLE_ALIASES_VALUE" == false ]] && printf yes || printf no)"
     printf '%-24s %s\n' "Prompt enabled:" "$([[ "$DISABLE_PROMPT_VALUE" == false ]] && printf yes || printf no)"
@@ -165,7 +159,6 @@ fi
 
 log "Executing setup steps..."
 bash "$REPO_ROOT/profiles/zsh/setup/core.sh" "$OPT_CORE"
-bash "$REPO_ROOT/profiles/zsh/setup/fnm.sh" "$OPT_FNM"
 bash "$REPO_ROOT/profiles/zsh/setup/zsh.sh" "$OPT_ZSH" "$REPO_ROOT"
 bash "$REPO_ROOT/profiles/zsh/setup/modules.sh" \
     "$MODULE_ACTION" \

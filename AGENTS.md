@@ -35,7 +35,7 @@ The order in `.zshrc` is intentional:
 5. shell options and history.
 6. third-party plugins.
 7. local aliases/hooks so local definitions win.
-8. prompt configuration and FNM initialization.
+8. prompt configuration and mise initialization.
 
 Do not move plugin completion paths below `compinit`, source both
 Powerlevel10k compatibility themes, export `FPATH`, or restore the old literal
@@ -48,7 +48,7 @@ completion-age test.
   manifest changes.
 - Use `./scripts/update-plugin-pin.sh owner/repository FULL_COMMIT_SHA` for
   plugin updates. Do not replace pins with floating branches or tags.
-- Antidote, FNM, and pnpm-shell-completion versions are intentionally pinned
+- Antidote, mise, and pnpm-shell-completion versions are intentionally pinned
   in setup scripts.
 
 ## Module configuration
@@ -143,3 +143,7 @@ variables, installation behavior, or common commands change.
   prompt path: version-manager bootstrap can exceed Starship's timeout.
 - Setup prompts describe the selected profile directly; avoid comparisons to
   another profile's prompt engine or plugin manager.
+
+- Zsh setup includes mise and Node automatically; there is no separate runtime
+  component flag. Enable Node idiomatic version files during setup so `.nvmrc`
+  and `.node-version` select the runtime through mise activation on directory changes.

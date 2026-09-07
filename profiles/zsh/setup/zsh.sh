@@ -19,6 +19,8 @@ if [[ "$ACTION" == "skip" ]]; then
     exit 0
 fi
 
+bash "$SETUP_DIR/mise.sh" install
+
 log "Setting up Zsh and plugins..."
 
 touch "$HOME/.zshrc" "$HOME/.zshenv"

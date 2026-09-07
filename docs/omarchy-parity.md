@@ -37,8 +37,8 @@ Oh My Zsh alias catalog. Use the underlying CLI for other operations.
 | History and migration | Keep Bash's history file and options; append/read new entries between prompts. Never mix extended Zsh records into Bash history. Concurrent history ordering follows Bash, not Zsh's exact shared-history behavior. |
 | Shell options and navigation | Keep Omarchy's Bash options and zoxide. Zsh glob ordering, directory stack options, and automatic URL quoting are not emulated. |
 | SSH agent hook | Keep the existing user/Omarchy SSH setup; do not introduce another agent initialization. |
-| FNM Node switching | Use Omarchy's mise activation and project configuration. No FNM install, Node download, or runtime configuration rewrite. Existing projects may need a mise tool declaration; this profile does not migrate `.nvmrc` files or enable mise settings. |
-| PATH, editor, terminal integration | Preserve Omarchy/user settings. Tools are resolved from the existing PATH; no hard-coded FNM or pnpm path. |
+| mise Node switching | Use Omarchy's existing mise activation and project configuration. No Node download or runtime configuration rewrite. Declare project tools in `mise.toml`. |
+| PATH, editor, terminal integration | Preserve Omarchy/user settings. Tools are resolved from the existing PATH; no hard-coded runtime or pnpm path. |
 
 ## Active plugin inventory
 

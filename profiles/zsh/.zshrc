@@ -19,9 +19,6 @@ path=(
 )
 export PNPM_HOME="$HOME/.local/share/pnpm"
 
-FNM_PATH="$HOME/.local/share/fnm"
-[[ -d "$FNM_PATH" ]] && path=("$FNM_PATH" $path)
-
 fpath=("$DOTFILES_DIR/profiles/zsh/completions" $fpath)
 if [[ -d "$DOTFILES_DIR/.antidote/functions" ]]; then
   fpath=("$DOTFILES_DIR/.antidote/functions" $fpath)
@@ -191,8 +188,6 @@ pastefinish() {
 zstyle :bracketed-paste-magic paste-init pasteinit
 zstyle :bracketed-paste-magic paste-finish pastefinish
 
-if [[ -x "$FNM_PATH/fnm" ]]; then
-  eval "$("$FNM_PATH/fnm" env --use-on-cd --version-file-strategy=recursive --shell zsh)"
-elif command -v fnm >/dev/null 2>&1; then
-  eval "$(fnm env --use-on-cd --version-file-strategy=recursive --shell zsh)"
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate zsh)"
 fi
