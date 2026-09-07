@@ -1,19 +1,12 @@
 # Public commands are registered only when their names are free.
-_dotfiles_run() {
-    command -v "$1" >/dev/null 2>&1 || {
-        printf 'dotfiles: %s is required; install it using Omarchy or mise.\n' "$1" >&2
-        return 127
-    }
-    command "$@"
-}
 _dotfiles_edit() {
     local -a editor
     # EDITOR supports a command and whitespace-separated options, not shell code.
     read -r -a editor <<< "${EDITOR:-nano}"
-    _dotfiles_run "${editor[@]}" "$1" && exec bash
+    "${editor[@]}" "$1" && exec bash
 }
 _dotfiles_python() {
-    _dotfiles_run python3 "$DOTFILES_DIR/profiles/omarchy/tools.py" "$@"
+    python3 "$DOTFILES_DIR/profiles/omarchy/tools.py" "$@"
 }
 _dotfiles_helper() {
     local action="$1"; shift
@@ -29,33 +22,33 @@ _dotfiles_helper() {
         back) cd - || return ;;
         dev) cd "$HOME/dev" || return ;;
         bottom) printf '\033[%s;1H' "${LINES:-24}" ;;
-        clear) _dotfiles_run clear && printf '\033[%s;1H' "${LINES:-24}" ;;
-        sql) _dotfiles_run "$HOME/sqlcl/bin/sql" "$@" ;;
-        open) _dotfiles_run xdg-open "$@" ;;
+        clear) clear && printf '\033[%s;1H' "${LINES:-24}" ;;
+        sql) "$HOME/sqlcl/bin/sql" "$@" ;;
+        open) xdg-open "$@" ;;
         google|duck)
             local query base='https://www.google.com/search?q='
             [[ "$action" != duck ]] || base='https://duckduckgo.com/?q='
             query="$(_dotfiles_python urlencode "$*")" || return
-            _dotfiles_run xdg-open "$base$query"
+            xdg-open "$base$query"
             ;;
         copyfile)
             [[ "$#" == 1 && -f "$1" ]] || { printf 'Usage: copyfile FILE\n' >&2; return 2; }
-            _dotfiles_run wl-copy < "$1"
+            wl-copy < "$1"
             ;;
-        copypath) printf '%s' "$PWD" | _dotfiles_run wl-copy ;;
+        copypath) printf '%s' "$PWD" | wl-copy ;;
         extract)
             [[ "$#" == 1 && -f "$1" ]] || { printf 'Usage: x ARCHIVE\n' >&2; return 2; }
             local archive="$1"
             [[ "$archive" == /* ]] || archive="$PWD/$archive"
             case "$archive" in
-                *.tar|*.tar.gz|*.tgz|*.tar.bz2|*.tbz2|*.tar.xz|*.txz|*.tar.zst) _dotfiles_run tar -xf "$archive" ;;
-                *.zip) _dotfiles_run unzip "$archive" ;;
-                *.7z) _dotfiles_run 7z x "$archive" ;;
-                *.rar) _dotfiles_run unrar x "$archive" ;;
-                *.gz) _dotfiles_run gzip -dk -- "$archive" ;;
-                *.bz2) _dotfiles_run bzip2 -dk -- "$archive" ;;
-                *.xz) _dotfiles_run xz -dk -- "$archive" ;;
-                *.zst) _dotfiles_run zstd -dk -- "$archive" ;;
+                *.tar|*.tar.gz|*.tgz|*.tar.bz2|*.tbz2|*.tar.xz|*.txz|*.tar.zst) tar -xf "$archive" ;;
+                *.zip) unzip "$archive" ;;
+                *.7z) 7z x "$archive" ;;
+                *.rar) unrar x "$archive" ;;
+                *.gz) gzip -dk -- "$archive" ;;
+                *.bz2) bzip2 -dk -- "$archive" ;;
+                *.xz) xz -dk -- "$archive" ;;
+                *.zst) zstd -dk -- "$archive" ;;
                 *) printf 'Unsupported archive: %s\n' "$archive" >&2; return 2 ;;
             esac
             ;;
@@ -63,7 +56,7 @@ _dotfiles_helper() {
             [[ "$#" -gt 0 ]] || { printf 'Usage: gi LANGUAGE[,LANGUAGE...]\n' >&2; return 2; }
             local query
             query="$(_dotfiles_python urlencode "$*")" || return
-            _dotfiles_run curl --fail --silent --show-error --location "https://www.toptal.com/developers/gitignore/api/$query"
+            curl --fail --silent --show-error --location "https://www.toptal.com/developers/gitignore/api/$query"
             ;;
         als) alias | command grep -F -- "${1:-}" ;;
         inspect)
@@ -75,7 +68,7 @@ _dotfiles_helper() {
         hsi) builtin history | command grep -Fi -- "${1:-}" ;;
         timing)
             local i
-            for ((i = 0; i < 4; i++)); do _dotfiles_run /usr/bin/time bash -i -c exit; done
+            for ((i = 0; i < 4; i++)); do /usr/bin/time bash -i -c exit; done
             ;;
         *) _dotfiles_python "$action" "$@" ;;
     esac
@@ -98,24 +91,24 @@ _dotfiles_register upload-dotfiles '_dotfiles_helper upload'
 while IFS='|' read -r name expansion; do
     _dotfiles_register "$name" "$expansion"
 done <<'ALIASES'
-ni|_dotfiles_run npm install
-nd|_dotfiles_run npm run dev
-nb|_dotfiles_run npm run build
-ns|_dotfiles_run npm run start
-pni|_dotfiles_run pnpm install
-pnd|_dotfiles_run pnpm run dev
-pnb|_dotfiles_run pnpm run build
-pns|_dotfiles_run pnpm run start
-yi|_dotfiles_run yarn install
-yd|_dotfiles_run yarn dev
-yb|_dotfiles_run yarn build
-ys|_dotfiles_run yarn start
-c|_dotfiles_run code -r
+ni|npm install
+nd|npm run dev
+nb|npm run build
+ns|npm run start
+pni|pnpm install
+pnd|pnpm run dev
+pnb|pnpm run build
+pns|pnpm run start
+yi|yarn install
+yd|yarn dev
+yb|yarn build
+ys|yarn start
+c|code -r
 cls|_dotfiles_helper clear
 cx|_dotfiles_helper up
 cz|_dotfiles_helper back
 dev|_dotfiles_helper dev
-lc|_dotfiles_run eza -la --group-directories-first
+lc|eza -la --group-directories-first
 sql|_dotfiles_helper sql
 open|_dotfiles_helper open
 reload|_dotfiles_helper reload
@@ -144,16 +137,16 @@ hsi|_dotfiles_helper hsi
 als|_dotfiles_helper als
 alias-show|_dotfiles_helper inspect
 gi|_dotfiles_helper gi
-gst|_dotfiles_run git status
-gco|_dotfiles_run git checkout
-gcm|_dotfiles_run git checkout main
-gp|_dotfiles_run git push
-gl|_dotfiles_run git pull
-glog|_dotfiles_run git log --oneline --decorate --graph
-dco|_dotfiles_run docker compose
-dcup|_dotfiles_run docker compose up
-dcdown|_dotfiles_run docker compose down
-dce|_dotfiles_run docker compose exec
+gst|git status
+gco|git checkout
+gcm|git checkout main
+gp|git push
+gl|git pull
+glog|git log --oneline --decorate --graph
+dco|docker compose
+dcup|docker compose up
+dcdown|docker compose down
+dce|docker compose exec
 ALIASES
 unset name expansion
 unset -f _dotfiles_register

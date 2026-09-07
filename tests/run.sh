@@ -18,7 +18,8 @@ fail() {
 for script in "$REPO_ROOT/setup.sh" "$REPO_ROOT/uninstall.sh" \
     "$REPO_ROOT/setup/"*.sh "$REPO_ROOT/profiles/"*/setup/*.sh \
     "$REPO_ROOT/tests/"*.sh "$REPO_ROOT/tests/fixtures/"*.sh \
-    "$REPO_ROOT/modules/shared/"*.sh "$REPO_ROOT/modules/bash/"*.bash; do
+    "$REPO_ROOT/modules/shared/"*.sh "$REPO_ROOT/modules/bash/"*.bash \
+    "$REPO_ROOT/profiles/omarchy/bash/"*.bash; do
     bash -n "$script"
 done
 pass "Bash syntax"
@@ -151,7 +152,8 @@ if command -v shellcheck >/dev/null 2>&1; then
         "$REPO_ROOT/tests/"*.sh \
         "$REPO_ROOT/tests/fixtures/"*.sh \
         "$REPO_ROOT/modules/shared/"*.sh \
-        "$REPO_ROOT/modules/bash/"*.bash
+        "$REPO_ROOT/modules/bash/"*.bash \
+        "$REPO_ROOT/profiles/omarchy/bash/"*.bash
     pass "ShellCheck"
 else
     printf 'skip - ShellCheck is not installed\n'

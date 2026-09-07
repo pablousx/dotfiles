@@ -32,7 +32,7 @@ if ! type -t df-run >/dev/null; then
         command -v "$manager" >/dev/null 2>&1 || { printf 'Install %s with mise.\n' "$manager" >&2; return 127; }
         command "$manager" run "$@"
     }
-    _dotfiles_run_complete() {
+    _dotfiles_scripts_complete() {
         COMPREPLY=()
         local candidate cur="${COMP_WORDS[COMP_CWORD]}"
         if [[ "$COMP_CWORD" == 1 ]]; then
@@ -45,6 +45,6 @@ if ! type -t df-run >/dev/null; then
             done < <(python3 "$DOTFILES_DIR/profiles/omarchy/tools.py" scripts)
         fi
     }
-    complete -o default -F _dotfiles_run_complete df-run
+    complete -o default -F _dotfiles_scripts_complete df-run
 fi
 unset _dotfiles_tool

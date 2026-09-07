@@ -108,6 +108,10 @@ source "$TEST_REPO/modules/bash/rc.bash"
 [[ $(alias cx) == "alias cx='claude --permission-mode auto'" ]]
 [[ $(alias df-cx) == "alias df-cx='_dotfiles_helper up'" ]]
 [[ $(open hello) == omarchy-open:hello ]]
+[[ $(alias df-pni) == "alias df-pni='pnpm install'" ]]
+pnpm() { printf '<%s>\n' "$@"; }
+[[ $(df-pni 'package with spaces' '--save-dev') == $'<install>\n<package with spaces>\n<--save-dev>' ]]
+unset -f pnpm
 [[ $(complete -p npm) == *'_omarchy_fixture_complete npm' ]]
 [[ $(complete -p omarchy) == *'_omarchy_fixture_complete omarchy' ]]
 [[ $PROMPT_COMMAND == *': mise; : starship'* ]]
@@ -121,12 +125,11 @@ source "$TEST_REPO/modules/bash/rc.bash"
 [[ $(df-d64 'aGVsbG8=') == hello ]]
 [[ $(df-urldecode_json '"hello"') == hello ]]
 if df-is_json '{broken}' 2>/dev/null; then exit 1; fi
-if _dotfiles_run dotfiles-missing-command 2>/dev/null; then exit 1; else [[ $? == 127 ]]; fi
 mkdir -p "$HOME/project space"
 cd "$HOME/project space"
 printf '%s\n' '{"scripts":{"build":"echo yes","bad;touch-pwned":"echo no"}}' > package.json
 COMP_WORDS=(df-run npm b); COMP_CWORD=2
-_dotfiles_run_complete
+_dotfiles_scripts_complete
 [[ ${COMPREPLY[0]} == build && ${COMPREPLY[1]} == 'bad;touch-pwned' ]]
 [[ ! -f touch-pwned ]]
 HISTFILE="$HOME/bash-history"
