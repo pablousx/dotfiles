@@ -40,20 +40,32 @@ but they are not needed for normal setup.
 Configuring Zsh automatically installs and configures mise. No separate component
 flag or project conversion is needed. The Zsh profile installs mise `2026.9.0` when it is absent, using a pinned binary
 and SHA-256 verification. Existing mise installations are reused. The default
-Node.js version is `24.12.0`; select another exact version with:
+Node.js version is `24.12.0`, pnpm is `11.5.2`, and Bitwarden CLI is `2026.5.0`;
+select other exact versions with:
 
 ```sh
 NODE_VERSION=24.12.0 ./setup.sh
 ```
 
-mise is installed at `~/.local/bin/mise`. Setup runs `mise use --global node@VERSION`,
-which installs Node and records the global default. Zsh runs `mise activate zsh`
+mise is installed at `~/.local/bin/mise`. Setup runs `mise use --global
+node@VERSION`, `mise use --global npm:pnpm@VERSION`, and
+`mise use --global npm:@bitwarden/cli@VERSION`, which install the tools and
+record their global defaults. Zsh runs `mise activate zsh`
 for automatic project switching, including from subdirectories. Setup enables
 `idiomatic_version_file_enable_tools` for Node, so existing `.nvmrc` and
 `.node-version` files work automatically alongside `mise.toml`. No per-project
 `mise use` command is required. Versions must already be installed; run
 `mise install` if a project requests a missing version. See the
 [mise Node documentation](https://mise.jdx.dev/lang/node.html).
+Mise activation runs immediately after PATH setup, before completion and plugins,
+so its selected tools take priority over inherited runtime paths. Setup does not
+remove existing Homebrew formulae or user-owned runtime directories: inspect
+`command -v node pnpm bw` in a fresh shell and `brew list --versions node pnpm fnm`
+before manually retiring duplicates. Keep Homebrew Python where system scripts
+need `python3`; project dependencies stay in project lockfiles. Tools such as
+pnpm-shell-completion remain separately pinned and SHA-256 verified because they
+are not the pnpm runtime.
+
 `./uninstall.sh --mise` removes only the marked, unchanged binary installed by
 this repository; it preserves mise configuration, downloaded runtimes, and projects.
 Binary downloads support macOS Intel/Apple Silicon and Linux x64/ARM64/ARMv7.
@@ -350,7 +362,8 @@ user configuration are modified. See the parity document for terminal checks.
 
 ## Security and reproducibility
 
-- mise and pnpm completion binaries use pinned release URLs and SHA-256 hashes.
+- mise, Node.js, pnpm, and pnpm completion binaries use pinned versions or
+  release URLs with SHA-256 hashes.
 - Antidote and all shell plugins are pinned to full Git commits.
 - Setup stops immediately when a component fails.
 - Local `.env` text is not evaluated as shell code; only known boolean flags

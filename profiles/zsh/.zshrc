@@ -14,10 +14,13 @@ typeset -U path PATH
 path=(
   "$HOME/.local/bin"
   "$HOME/.opencode/bin"
-  "$HOME/.local/share/pnpm"
   $path
 )
-export PNPM_HOME="$HOME/.local/share/pnpm"
+
+# Activate before completion and plugins so mise-managed tools win over inherited PATH.
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate zsh)"
+fi
 
 fpath=("$DOTFILES_DIR/profiles/zsh/completions" $fpath)
 if [[ -d "$DOTFILES_DIR/.antidote/functions" ]]; then
@@ -187,7 +190,3 @@ pastefinish() {
 
 zstyle :bracketed-paste-magic paste-init pasteinit
 zstyle :bracketed-paste-magic paste-finish pastefinish
-
-if command -v mise >/dev/null 2>&1; then
-  eval "$(mise activate zsh)"
-fi

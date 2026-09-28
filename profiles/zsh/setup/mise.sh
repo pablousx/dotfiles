@@ -9,13 +9,19 @@ source "$SETUP_DIR/../../../setup/lib.sh"
 ACTION="${1:-}"
 require_action "$ACTION"
 if [[ "$ACTION" == skip ]]; then
-    log "Skipping mise and Node.js."
+    log "Skipping mise, Node.js, pnpm, and Bitwarden CLI."
     exit 0
 fi
 
 NODE_VERSION="${NODE_VERSION:-24.12.0}"
 [[ "$NODE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
     die "NODE_VERSION must be an exact version (for example, 24.12.0)."
+PNPM_VERSION="${PNPM_VERSION:-11.5.2}"
+[[ "$PNPM_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
+    die "PNPM_VERSION must be an exact version (for example, 11.5.2)."
+BITWARDEN_CLI_VERSION="${BITWARDEN_CLI_VERSION:-2026.5.0}"
+[[ "$BITWARDEN_CLI_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
+    die "BITWARDEN_CLI_VERSION must be an exact version (for example, 2026.5.0)."
 [[ "$HOME" == /* ]] || die "HOME must be an absolute path."
 # This version and the hashes below must be updated together.
 MISE_VERSION=2026.9.0
@@ -66,3 +72,9 @@ fi
 
 log "Installing and selecting Node.js $NODE_VERSION globally with mise..."
 "$mise_bin" use --global "node@$NODE_VERSION"
+
+log "Installing and selecting pnpm $PNPM_VERSION globally with mise..."
+"$mise_bin" use --global "npm:pnpm@$PNPM_VERSION"
+
+log "Installing and selecting Bitwarden CLI $BITWARDEN_CLI_VERSION globally with mise..."
+"$mise_bin" use --global "npm:@bitwarden/cli@$BITWARDEN_CLI_VERSION"

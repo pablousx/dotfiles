@@ -49,10 +49,14 @@ bash "$installer" install
 [[ -x "$HOME/.local/bin/mise" ]]
 grep -qx 'settings add idiomatic_version_file_enable_tools node' "$MISE_TEST_LOG"
 grep -qx 'use --global node@24.12.0' "$MISE_TEST_LOG"
+grep -qx 'use --global npm:pnpm@11.5.2' "$MISE_TEST_LOG"
+grep -qx 'use --global npm:@bitwarden/cli@2026.5.0' "$MISE_TEST_LOG"
 : > "$MISE_TEST_LOG"
 NODE_VERSION=22.14.0 bash "$installer" install
 grep -qx 'use --global node@22.14.0' "$MISE_TEST_LOG"
-[[ $(wc -l < "$MISE_TEST_LOG") -eq 2 ]]
+grep -qx 'use --global npm:pnpm@11.5.2' "$MISE_TEST_LOG"
+grep -qx 'use --global npm:@bitwarden/cli@2026.5.0' "$MISE_TEST_LOG"
+[[ $(wc -l < "$MISE_TEST_LOG") -eq 3 ]]
 mkdir -p "$HOME/.local/share/mise" "$HOME/.config/mise"
 echo retained > "$HOME/.local/share/mise/runtime"
 echo retained > "$HOME/.config/mise/config.toml"
@@ -84,7 +88,9 @@ done
 printf 'n\ny\nn\nn\nn\nn\nn\ny\n' | bash "$repo/profiles/zsh/setup.sh" >/dev/null
 grep -qx 'settings add idiomatic_version_file_enable_tools node' "$MISE_TEST_LOG"
 grep -qx 'use --global node@24.12.0' "$MISE_TEST_LOG"
-[[ $(wc -l < "$MISE_TEST_LOG") -eq 2 ]]
+grep -qx 'use --global npm:pnpm@11.5.2' "$MISE_TEST_LOG"
+grep -qx 'use --global npm:@bitwarden/cli@2026.5.0' "$MISE_TEST_LOG"
+[[ $(wc -l < "$MISE_TEST_LOG") -eq 4 ]]
 : > "$MISE_TEST_LOG"
 printf 'n\nn\nn\nn\nn\nn\nn\ny\n' | bash "$repo/profiles/zsh/setup.sh" >/dev/null
 [[ ! -s "$MISE_TEST_LOG" ]]

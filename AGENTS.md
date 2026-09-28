@@ -144,6 +144,8 @@ variables, installation behavior, or common commands change.
 - Setup prompts describe the selected profile directly; avoid comparisons to
   another profile's prompt engine or plugin manager.
 
-- Zsh setup includes mise and Node automatically; there is no separate runtime
-  component flag. Enable Node idiomatic version files during setup so `.nvmrc`
-  and `.node-version` select the runtime through mise activation on directory changes.
+- Zsh setup includes mise, Node, pnpm, and Bitwarden CLI automatically; there is no separate
+  runtime component flag. Enable Node idiomatic version files during setup so
+  `.nvmrc` and `.node-version` select the runtime through mise activation on
+  directory changes. Keep Node, pnpm, and Bitwarden CLI out of Homebrew-managed
+  dependencies.
