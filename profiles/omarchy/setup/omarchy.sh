@@ -109,8 +109,14 @@ if [[ "$interactive" == true ]]; then
     [[ "$choice" == true ]] || brightness_knob=install
     choice="$(choose 'Sync global AI instructions and skills?' no)" || die 'setup input ended'
     [[ "$choice" == true ]] || ai=install
-    choice="$(choose 'Install omasync bar plugin (periodic checks; automatic download off)?' no)" || die 'setup input ended'
-    [[ "$choice" == true ]] || omasync=install
+    omasync_action=install
+    omasync_question='Install omasync bar plugin (periodic checks; automatic download off)?'
+    if [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/plugins/io.github.pablousx.omasync/manifest.json" ]]; then
+        omasync_action=update
+        omasync_question='Update installed omasync bar plugin (keep current settings and placement)?'
+    fi
+    choice="$(choose "$omasync_question" no)" || die 'setup input ended'
+    [[ "$choice" == true ]] || omasync="$omasync_action"
     prompt_modules=true
 fi
 if [[ "$prompt_modules" == true ]]; then
@@ -155,7 +161,7 @@ if [[ "$write" == true ]]; then
     mv "$generated" "$REPO_ROOT/.env.omarchy"
 fi
 bash "$REPO_ROOT/setup/ai.sh" "$ai"
-if [[ "$omasync" == install ]]; then
+if [[ "$omasync" != skip ]]; then
     python3 "$REPO_ROOT/omasync/install.py" install
 fi
 if [[ "$startup" == install || "$write" == true ]]; then

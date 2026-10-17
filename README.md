@@ -539,15 +539,20 @@ Validate Rulesync generation in a temporary HOME when updating it, and run
 ## Optional Omarchy sync plugin (omasync)
 
 Choose **Install omasync bar plugin** in `./setup.sh` on Omarchy (default: no).
-Installation runs at the end of successful setup, after AI configuration.
+If already installed, setup offers to update it, preserving its settings and
+placement. Installation runs at the end of successful setup, after AI configuration.
 This component is selected only through the interactive prompt; `--all` excludes it.
 Requires Git, Python 3, Omarchy Quattro and its running shell. AI generation
 continues to require the existing per-machine opt-in and pinned mise tools.
-No dependencies are installed by the plugin installer.
+No dependencies are installed by the plugin installer. Shell reload confirmation
+uses bounded retries; if it fails, the copied files remain and setup can be
+retried without losing pending initial activation. UI snapshots use distinct
+entry-point paths and an atomic manifest switch to avoid stale QML caches.
 
 The native bar icon opens **Subir**, **Descargar**, and **Resolver con AI** when
-an operation fails. Upload opens a terminal for the existing commit-message
-prompt; uploads are always manual. Periodic checks default to five minutes;
+an operation fails. Pressing **Subir** generates a UTC timestamp commit message;
+`df up` keeps its interactive prompt. Uploads are always manual. The panel follows
+omadocs styling and includes an **Ajustes** tab. Checks default to five minutes;
 automatic download is off. The panel distinguishes a successful Git update
 from failure to apply AI. Network/authentication failures retry silently on
 later checks, without recurring dialogs.

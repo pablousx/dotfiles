@@ -154,7 +154,7 @@ class InteractiveSetup(unittest.TestCase):
                 log = repo / "ai-log"
                 tools_log = repo / "tools-log"
                 env = dict(os.environ, HOME=str(repo), AI_LOG=str(log), TOOLS_LOG=str(tools_log),
-                           PLUGIN_LOG=str(plugin_log))
+                           PLUGIN_LOG=str(plugin_log), XDG_CONFIG_HOME=str(repo / ".config"))
                 prefix = ["n", "n", "n"] if profile == "zsh" else ["n", "n", "n", "", "n"]
                 modules = ["n"] * 5  # Omarchy also declines the optional plugin.
                 for answer, expected in (("y", "install"), ("n", "skip"), ("", "skip")):
@@ -197,6 +197,18 @@ class InteractiveSetup(unittest.TestCase):
                         input="\n".join(prefix + ["n", "y"] + ["n"] * 4 + ["y", ""]))
                     self.assertEqual(interactive_plugin.returncode, 0, interactive_plugin.stderr)
                     self.assertEqual(plugin_log.read_text(), "install")
+                    plugin_log.unlink()
+                    installed_plugin = repo / ".config/omarchy/plugins/io.github.pablousx.omasync"
+                    installed_plugin.mkdir(parents=True)
+                    (installed_plugin / "manifest.json").write_text('{"version": "old"}')
+                    for answer in ("n", "", "y"):
+                        updated = subprocess.run(
+                            ["bash", str(script)], env=env, capture_output=True, text=True,
+                            input="\n".join(prefix + ["n", answer] + ["n"] * 4 + ["y", ""]))
+                        self.assertEqual(updated.returncode, 0, updated.stderr)
+                        self.assertIn("omasync plugin: " + ("update" if answer == "y" else "skip"), updated.stdout)
+                        self.assertEqual(plugin_log.exists(), answer == "y")
+                    self.assertEqual((installed_plugin / "manifest.json").read_text(), '{"version": "old"}')
 
 
 if __name__ == "__main__":
