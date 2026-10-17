@@ -16,3 +16,7 @@ interactive keyboard choice is None, which leaves the current layout unchanged.
 
 Shared runtimes and developer tools are installed with `./setup.sh --tools`,
 using the repository's pinned mise manifest and four-platform lockfile.
+
+The optional [omasync plugin](../../omasync/README.md) is offered by interactive
+setup with default no and installed at the end when accepted; `--all` excludes it. Its
+shared portable engine also implements `df up` / `df down`.

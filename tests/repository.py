@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise repository commands with local remotes and a mocked AI generator."""
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import tempfile
@@ -29,7 +30,10 @@ class RepositoryCommands(unittest.TestCase):
         self.git("add", ".")
         self.git("commit", "-m", "initial")
         self.git("push", "-u", "origin", "HEAD")
+        (self.repo / "omasync").mkdir()
+        shutil.copyfile(ROOT / "omasync/sync.py", self.repo / "omasync/sync.py")
         (self.repo / "scripts").mkdir()
+        (self.repo / ".git/info/exclude").write_text("omasync/\nscripts/\n")
         (self.repo / "scripts/sync-ai.sh").write_text(
             'printf "synced\\n" >> "$HOME/sync-log"\nexit "${SYNC_EXIT:-0}"\n')
 

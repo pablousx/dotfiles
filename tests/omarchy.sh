@@ -78,14 +78,14 @@ cmp "$TEMP_ROOT/calls-before-eof" "$CALL_LOG"
 # Cancelled interactive changes preserve both startup and settings.
 cp "$repo/.env.omarchy" "$TEMP_ROOT/settings"
 cp "$HOME/.bashrc" "$TEMP_ROOT/installed"
-printf 'n\nn\nn\nNone\nn\nn\ny\ny\ny\ny\nn\n' > "$TEMP_ROOT/input"
+printf 'n\nn\nn\nNone\nn\nn\nn\ny\ny\ny\ny\nn\n' > "$TEMP_ROOT/input"
 if bash "$repo/setup.sh" --profile omarchy < "$TEMP_ROOT/input" >/dev/null 2>&1; then exit 1; fi
 cmp "$TEMP_ROOT/settings" "$repo/.env.omarchy"
 cmp "$TEMP_ROOT/installed" "$HOME/.bashrc"
 # Zero-argument profile discovery; declining both components still permits explicit settings.
 mkdir -p "$TEMP_ROOT/omarchy/default/bash"
 touch "$TEMP_ROOT/omarchy/default/bash/rc"
-printf 'n\nn\nn\n\nn\nn\ny\ny\ny\ny\ny\n' > "$TEMP_ROOT/input"
+printf 'n\nn\nn\n\nn\nn\nn\ny\ny\ny\ny\ny\n' > "$TEMP_ROOT/input"
 OMARCHY_PATH="$TEMP_ROOT/omarchy" bash "$repo/setup.sh" < "$TEMP_ROOT/input" >/dev/null
 cmp "$TEMP_ROOT/installed" "$HOME/.bashrc"
 

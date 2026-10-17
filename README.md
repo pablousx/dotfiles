@@ -368,7 +368,9 @@ reload                      # Replace the current process with a fresh Zsh
 `df up` stages tracked changes plus new files under `ai/`, asks for a commit
 message, and pushes the current branch. Other untracked files are excluded.
 It refuses detached HEADs, avoids empty commits, and stops on sync, commit,
-or push errors. `df down` pulls with `--ff-only` and then regenerates AI.
+or push errors. `df down` requires a clean checkout and an upstream branch, fetches and updates
+with `--ff-only`, then regenerates AI. Both commands use the portable Python 3
+engine in `omasync/sync.py` and share its repository lock with the Omarchy plugin.
 Both commands apply AI only after it has been installed successfully through
 the interactive setup on that machine. Existing AI conflicts stop generation
 without overwriting local edits; if generation fails after a pull, the checkout
@@ -532,3 +534,24 @@ calculate SHA-256 from its official artifact and record it in the lock entry;
 `make check` rejects missing checksums. Keep RTK's `rtk-oss-` asset selection.
 Validate Rulesync generation in a temporary HOME when updating it, and run
 `make check` before using the new tools on global configuration.
+
+
+## Optional Omarchy sync plugin (omasync)
+
+Choose **Install omasync bar plugin** in `./setup.sh` on Omarchy (default: no).
+Installation runs at the end of successful setup, after AI configuration.
+This component is selected only through the interactive prompt; `--all` excludes it.
+Requires Git, Python 3, Omarchy Quattro and its running shell. AI generation
+continues to require the existing per-machine opt-in and pinned mise tools.
+No dependencies are installed by the plugin installer.
+
+The native bar icon opens **Subir**, **Descargar**, and **Resolver con AI** when
+an operation fails. Upload opens a terminal for the existing commit-message
+prompt; uploads are always manual. Periodic checks default to five minutes;
+automatic download is off. The panel distinguishes a successful Git update
+from failure to apply AI. Network/authentication failures retry silently on
+later checks, without recurring dialogs.
+
+See [omasync/README.md](omasync/README.md) for settings, safety guarantees,
+AI recovery, removal, and validation limits. The shared engine supports Linux
+and macOS; the desktop plugin and installer support Omarchy only.

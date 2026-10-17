@@ -26,6 +26,7 @@ pass "Bash syntax"
 
 python3 "$REPO_ROOT/tests/ai.py"
 python3 "$REPO_ROOT/tests/repository.py"
+python3 "$REPO_ROOT/omasync/test_sync.py"
 bash "$REPO_ROOT/tests/tools.sh"
 python3 "$REPO_ROOT/tests/tools.py"
 bash "$REPO_ROOT/tests/platform.sh"

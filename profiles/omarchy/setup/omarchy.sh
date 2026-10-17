@@ -62,6 +62,7 @@ tools=skip
 startup=skip
 keyboard=skip
 brightness_knob=skip
+omasync=skip
 write=false
 interactive=false
 prompt_modules=false
@@ -108,6 +109,8 @@ if [[ "$interactive" == true ]]; then
     [[ "$choice" == true ]] || brightness_knob=install
     choice="$(choose 'Sync global AI instructions and skills?' no)" || die 'setup input ended'
     [[ "$choice" == true ]] || ai=install
+    choice="$(choose 'Install omasync bar plugin (periodic checks; automatic download off)?' no)" || die 'setup input ended'
+    [[ "$choice" == true ]] || omasync=install
     prompt_modules=true
 fi
 if [[ "$prompt_modules" == true ]]; then
@@ -129,6 +132,7 @@ if [[ "$interactive" == true || "$prompt_modules" == true ]]; then
     printf 'Keyboard configuration: %s\n' "$keyboard_label"
     printf 'All-monitor brightness knob: %s\n' "$brightness_knob"
     printf 'Global AI configuration: %s\n' "$ai"
+    printf 'omasync plugin: %s\n' "$omasync"
     for i in 0 1 2 3; do printf '%s=%s\n' "${keys[$i]}" "${values[$i]}"; done
     [[ "$(choose 'Apply these settings?' yes)" == false ]] || die 'setup aborted'
 fi
@@ -151,6 +155,9 @@ if [[ "$write" == true ]]; then
     mv "$generated" "$REPO_ROOT/.env.omarchy"
 fi
 bash "$REPO_ROOT/setup/ai.sh" "$ai"
+if [[ "$omasync" == install ]]; then
+    python3 "$REPO_ROOT/omasync/install.py" install
+fi
 if [[ "$startup" == install || "$write" == true ]]; then
     log 'Omarchy profile setup complete. Open a new Bash session or run: exec bash'
 else

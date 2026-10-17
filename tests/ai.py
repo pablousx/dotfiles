@@ -145,11 +145,18 @@ class InteractiveSetup(unittest.TestCase):
                     (components / f"{name}.sh").write_text("#!/bin/bash\nexit 0\n")
                 (setup / "tools.sh").write_text('printf "%s" "$1" > "$TOOLS_LOG"\n')
                 (setup / "ai.sh").write_text('printf "%s" "$1" > "$AI_LOG"\n')
+                plugin_log = repo / "plugin-log"
+                if profile == "omarchy":
+                    (repo / "omasync").mkdir()
+                    (repo / "omasync/install.py").write_text(
+                        'import os\nfrom pathlib import Path\n'
+                        'Path(os.environ["PLUGIN_LOG"]).write_text("install")\n')
                 log = repo / "ai-log"
                 tools_log = repo / "tools-log"
-                env = dict(os.environ, HOME=str(repo), AI_LOG=str(log), TOOLS_LOG=str(tools_log))
+                env = dict(os.environ, HOME=str(repo), AI_LOG=str(log), TOOLS_LOG=str(tools_log),
+                           PLUGIN_LOG=str(plugin_log))
                 prefix = ["n", "n", "n"] if profile == "zsh" else ["n", "n", "n", "", "n"]
-                modules = ["n"] * (5 if profile == "zsh" else 4)
+                modules = ["n"] * 5  # Omarchy also declines the optional plugin.
                 for answer, expected in (("y", "install"), ("n", "skip"), ("", "skip")):
                     result = subprocess.run(["bash", str(script)],
                                             input="\n".join(prefix + [answer] + modules + ["y", ""]),
@@ -158,6 +165,7 @@ class InteractiveSetup(unittest.TestCase):
                     self.assertEqual(log.read_text(), expected)
                     self.assertEqual(tools_log.read_text(), "skip")
                     self.assertIn("Global AI configuration:", result.stdout)
+                    self.assertFalse(plugin_log.exists())
                 log.unlink()
                 tools_log.unlink()
                 cancelled = subprocess.run(["bash", str(script)],
@@ -166,6 +174,7 @@ class InteractiveSetup(unittest.TestCase):
                 self.assertNotEqual(cancelled.returncode, 0)
                 self.assertFalse(log.exists())
                 self.assertFalse(tools_log.exists())
+                self.assertFalse(plugin_log.exists())
                 removed = subprocess.run(["bash", str(script), "--ai"], env=env, capture_output=True)
                 self.assertNotEqual(removed.returncode, 0)
                 self.assertFalse(log.exists())
@@ -177,6 +186,17 @@ class InteractiveSetup(unittest.TestCase):
                     self.assertEqual(automated.returncode, 0, automated.stderr)
                     self.assertEqual(tools_log.read_text(), expected)
                     self.assertEqual(log.read_text(), "skip")
+                    self.assertFalse(plugin_log.exists())
+                if profile == "omarchy":
+                    explicit = subprocess.run(["bash", str(script), "--omasync"], env=env,
+                                              capture_output=True, text=True)
+                    self.assertNotEqual(explicit.returncode, 0)
+                    self.assertFalse(plugin_log.exists())
+                    interactive_plugin = subprocess.run(
+                        ["bash", str(script)], env=env, capture_output=True, text=True,
+                        input="\n".join(prefix + ["n", "y"] + ["n"] * 4 + ["y", ""]))
+                    self.assertEqual(interactive_plugin.returncode, 0, interactive_plugin.stderr)
+                    self.assertEqual(plugin_log.read_text(), "install")
 
 
 if __name__ == "__main__":

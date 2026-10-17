@@ -41,7 +41,7 @@ separate from the plugin's alias catalog and retain the behavior described below
 
 | Zsh feature | Omarchy/Bash equivalent or limitation |
 | --- | --- |
-| `dotfiles`, `df up`, `df down` | Shared repository Git implementation; `df-dotfiles` is also available. `df up` stages tracked changes and new AI sources, applies opted-in AI, commits and pushes. `df down` pulls with `--ff-only` and applies opted-in AI. Other `df` invocations use the system disk-usage command. |
+| `dotfiles`, `df up`, `df down` | Shared repository Git implementation; `df-dotfiles` is also available. `df up` stages tracked changes and new AI sources, applies opted-in AI, commits and pushes. `df down` requires a clean checkout and upstream, updates with `--ff-only`, and applies opted-in AI. Both share `omasync/sync.py` and its lock with the optional Omarchy plugin. Other `df` invocations use the system disk-usage command. |
 | `ni`, `nd`, `nb`, `ns` | Same npm commands. |
 | `pni`, `pnd`, `pnb`, `pns` | Same pnpm commands, using mise's selected runtime. |
 | `yi`, `yd`, `yb`, `ys` | Same Yarn commands. |
