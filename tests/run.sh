@@ -98,7 +98,14 @@ TEST_STATE="$TEST_HOME/.local/state"
 COMPLETION_DIR="$TEST_CACHE/antidote/github.com/zsh-users/zsh-completions/src"
 ZSH_BIN="$(command -v zsh)"
 TEST_PATH="${ZSH_BIN%/*}:/usr/bin:/bin:/usr/sbin:/sbin"
-mkdir -p "$COMPLETION_DIR"
+mkdir -p "$COMPLETION_DIR" "$TEST_HOME/.local/bin"
+cat > "$TEST_HOME/.local/bin/mise" <<'MOCK'
+#!/usr/bin/env bash
+[[ "$*" == 'activate zsh' ]] || exit 1
+printf '%s\n' 'export DOTFILES_MISE_ACTIVATED=true' \
+    'export DOTFILES_MISE_ACTIVATIONS=$(( ${DOTFILES_MISE_ACTIVATIONS:-0} + 1 ))'
+MOCK
+chmod +x "$TEST_HOME/.local/bin/mise"
 printf '%s\n' '#compdef dotfiles-smoke' '_arguments "*:file:_files"' \
     > "$COMPLETION_DIR/_dotfiles-smoke"
 
@@ -116,8 +123,10 @@ env -u FPATH \
     DISABLE_PLUGINS=true \
     DISABLE_PRINT_ALIAS_COMPLETION=true \
     DISABLE_EXPAND_ALIAS=true \
+    DOTFILES_MISE_ACTIVATIONS=0 \
     zsh -dfc '
         source "$DOTFILES_DIR/.zshrc"
+        [[ "$DOTFILES_MISE_ACTIVATED" == true && "$DOTFILES_MISE_ACTIVATIONS" == 1 ]]
         [[ "${_comps[dotfiles-smoke]-}" == "_dotfiles-smoke" ]]
         (( ! ${+functions[dotfiles]} ))
     '

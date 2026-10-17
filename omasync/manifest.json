@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.pablousx.omasync",
+  "name": "omasync",
+  "version": "0.1.0",
+  "author": "pablousx",
+  "description": "Dotfiles and per-machine global AI synchronization",
+  "kinds": ["bar-widget"],
+  "entryPoints": {"barWidget": "BarWidget.qml"},
+  "barWidget": {
+    "displayName": "omasync",
+    "category": "Utilities",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}

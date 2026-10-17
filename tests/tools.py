@@ -7,6 +7,7 @@ import tomllib
 root = Path(__file__).resolve().parents[1]
 config = tomllib.loads((root / "tools/mise.toml").read_text())
 lock = tomllib.loads((root / "tools/mise.lock").read_text())
+assert config["settings"]["idiomatic_version_file_enable_tools"] == ["node"]
 expected = {"node", "python", "pnpm", "yarn", "rtk", "shellcheck", "rulesync", "pnpm-shell-completion",
             "gh", "aws", "gcloud"}
 assert set(config["tools"]) == set(lock["tools"]) == expected

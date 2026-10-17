@@ -150,3 +150,10 @@ variables, installation behavior, or common commands change.
   prompt path: version-manager bootstrap can exceed Starship's timeout.
 - Setup prompts describe the selected profile directly; avoid comparisons to
   another profile's prompt engine or plugin manager.
+
+- Both profiles install shared pinned runtimes and CLIs only through `--tools`.
+  Keep versions and Node idiomatic-version-file support in `tools/mise.toml`;
+  `.nvmrc` and `.node-version` select installed runtimes through mise activation
+  on directory changes. Keep Node and pnpm out of Homebrew-managed dependencies.
+  Zsh exposes mise shims before completion and activates mise once after prompt
+  configuration; Omarchy retains its existing activation.

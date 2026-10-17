@@ -22,7 +22,7 @@ def sync(binary, dry_run):
     config = json.loads((source / "rulesync.jsonc").read_text())
     # Extend the output allowlist and tests when adding another target.
     if config != {"global": True, "targets": ["codexcli"],
-                  "features": ["rules", "skills"], "delete": False}:
+                  "features": ["rules", "skills", "subagents"], "delete": False}:
         raise ValueError("Review sync-ai.py output paths before changing Rulesync targets/features")
     home = Path.home().resolve()
     state = home / ".local/state/dotfiles-ai"
@@ -45,11 +45,15 @@ def sync(binary, dry_run):
         subprocess.run(command, cwd=work, env=env, check=True)
         outputs = []
         for generated in sorted(staged.rglob("*")):
+            relative = generated.relative_to(staged)
+            if generated.is_symlink():
+                raise ValueError(f"Unexpected Rulesync output: {relative}; nothing installed")
             if generated.is_dir():
                 continue
-            relative = generated.relative_to(staged)
-            if (generated.is_symlink() or not generated.is_file() or
+            if (not generated.is_file() or
                 not (relative == Path(".codex/AGENTS.md") or
+                     relative in (Path(".codex/agents/coder.toml"),
+                                  Path(".codex/agents/tester.toml")) or
                      (relative.parts[:2] == (".agents", "skills") and len(relative.parts) >= 4))):
                 raise ValueError(f"Unexpected Rulesync output: {relative}; nothing installed")
             if relative.parts[:2] == (".agents", "skills"):

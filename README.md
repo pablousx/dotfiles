@@ -72,8 +72,12 @@ It refuses an occupied destination unless it is already the matching symlink.
 Personal mise configuration and project tool versions retain precedence over
 these defaults. Installation uses the repository manifest and lockfile in
 isolation, so unrelated tools in personal/project configuration are not installed.
-Zsh activates mise once and exposes its shims before plugin loading; Omarchy
-uses its existing mise activation. RTK setup installs only the CLI, without hooks
+Zsh exposes mise shims before completion and plugins, then activates mise once
+after prompt configuration. Omarchy uses its existing mise activation. The shared
+manifest enables Node idiomatic version files: `.nvmrc` and `.node-version`
+select installed runtimes on directory changes, alongside project `mise.toml`.
+Run `mise install` when a project requests a missing version. RTK setup installs
+only the CLI, without hooks
 or services. Cloud CLI setup does not authenticate accounts or change cloud
 credentials. Gcloud uses a versioned Google archive through mise's HTTP backend;
 it needs no additional mise plugin or installer script. Python helpers and AI
@@ -425,8 +429,10 @@ The canonical, portable AI configuration lives in `ai/`:
   standard format (frontmatter `name` and `description`, followed by Markdown).
   Keep supporting scripts and references in the same skill directory, using
   relative paths. No sample skills are installed.
-- `ai/rulesync.jsonc`: Rulesync configuration. Initially only `codexcli`,
-  global mode, `rules` and `skills`, with `delete: false`.
+- `ai/.rulesync/subagents/{coder,tester}.md`: portable implementation and
+  independent validation roles. Developer lives in the global `developer.md` rule.
+- `ai/rulesync.jsonc`: Rulesync configuration: `codexcli`, global mode,
+  `rules`, `skills` and native `subagents`, with `delete: false`.
 
 Project-specific instructions and skills remain in their projects; this
 repository's `AGENTS.md` is not a global rule. Do not commit credentials,
@@ -479,11 +485,15 @@ HOME. The wrapper then checks every output and copies only approved files to
 the real HOME. `--dry-run` performs the same checks without writing any global
 files or ownership state. Missing mise tools produce an actionable error.
 
-For Codex, the verified destinations are `~/.codex/AGENTS.md` and
-`~/.agents/skills/<name>/`. The latter is shared with other harnesses.
-Authentication, sessions, models, `config.toml`, permissions and MCP are outside
-this integration. Existing unrelated skills remain untouched. Removed sources
-do not delete old outputs: review and remove obsolete skills manually.
+For Codex, the destinations are `~/.codex/AGENTS.md`,
+`~/.agents/skills/<name>/`, and `~/.codex/agents/{coder,tester}.toml`. Skills
+are shared with other harnesses. Authentication, sessions, the primary model,
+`config.toml`, permissions and MCP remain outside this integration. Existing
+unrelated skills and agents remain untouched. Removed sources do not delete
+old outputs: review and remove obsolete skills or agents manually.
+
+See [the multiagent workflow](docs/ai-agents.md) for role editing, per-agent
+model settings, invocation, T3 Code compatibility and validation limits.
 
 ### Existing content and conflicts
 
@@ -519,7 +529,7 @@ dependencies through setup rather than installing them implicitly from a skill.
 ### Adding another harness or updating Rulesync
 
 Add the desired target to `ai/rulesync.jsonc`, keeping global mode, features
-limited to rules/skills and deletion disabled. Check its global support and
+limited to rules/skills/subagents and deletion disabled. Check its global support and
 output paths in the [Rulesync global-mode documentation](https://rulesync.dyoshikawa.com/guide/global-mode)
 and [supported tools](https://rulesync.dyoshikawa.com/reference/supported-tools).
 Extend the configuration guard and destination allowlist in `scripts/sync-ai.py`
