@@ -60,7 +60,7 @@ ohmyzsh/ohmyzsh path:plugins/aws pin:59a9740721b734835812121322d6fe4827b0853a
 # npm — npm script aliases (npmg, npmS, etc.)
 ohmyzsh/ohmyzsh path:plugins/npm pin:59a9740721b734835812121322d6fe4827b0853a
 
-# pnpm — advanced completions for pnpm --filter and workspace scripts (Manually installed binary)
+# pnpm — advanced completions for pnpm --filter and workspace scripts (Binary managed by mise)
 g-plane/pnpm-shell-completion pin:d5c061ea860a40db698bb7b2481b49d9950ee7a1
 
 

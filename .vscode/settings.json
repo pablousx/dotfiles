@@ -14,5 +14,9 @@
   "files.watcherExclude": {
     "**/.git": true,
     "**/.antidote": true
-  }
+  },
+  "debug.javascript.defaultRuntimeExecutable": {
+    "pwa-node": "node"
+  },
+  "oxc.path.node": "node"
 }

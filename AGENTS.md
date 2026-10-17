@@ -35,7 +35,7 @@ The order in `.zshrc` is intentional:
 5. shell options and history.
 6. third-party plugins.
 7. local aliases/hooks so local definitions win.
-8. prompt configuration and FNM initialization.
+8. prompt configuration and mise activation.
 
 Do not move plugin completion paths below `compinit`, source both
 Powerlevel10k compatibility themes, export `FPATH`, or restore the old literal
@@ -48,8 +48,9 @@ completion-age test.
   manifest changes.
 - Use `./scripts/update-plugin-pin.sh owner/repository FULL_COMMIT_SHA` for
   plugin updates. Do not replace pins with floating branches or tags.
-- Antidote, FNM, and pnpm-shell-completion versions are intentionally pinned
-  in setup scripts.
+- Antidote is pinned in its setup script. Shared tool versions/backends belong in
+  `tools/mise.toml`; `tools/mise.lock` must include SHA-256 values for all four
+  supported platforms. Install through the shared `--tools` selection.
 
 ## Module configuration
 
@@ -75,10 +76,16 @@ Run before handing off any change:
 make check
 ```
 
-When ShellCheck is not installed locally, state that clearly; CI installs it
-on Ubuntu and macOS. Do not weaken or disable checks just to get a green run.
+When ShellCheck is not installed locally, state that clearly; CI installs the pinned mise toolset
+on Ubuntu, macOS, and Arch. Do not weaken or disable checks just to get a green run.
 
 ## Installed skills
+
+Before adding or syncing a skill, review its required shell tools, optional tools,
+and non-shell capabilities. Document prerequisites and verify availability on Linux
+and macOS, or clearly limit its platform scope. Use existing setup components for
+approved shared dependencies; skill installation must not silently install tools.
+Keep missing-tool behavior explicit and distinguish unverified checks from success.
 
 Future agents should use the globally installed skills when relevant:
 

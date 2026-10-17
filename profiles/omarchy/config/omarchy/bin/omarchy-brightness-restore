@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+
+# Persist and restore the synchronized all-monitor brightness target.
+set -Eeuo pipefail
+
+action="${1:-once}"
+case "$action" in
+    capture|once|watch) ;;
+    *) printf 'usage: omarchy-brightness-restore [capture|once|watch]\n' >&2; exit 2 ;;
+esac
+
+runtime_dir="${XDG_RUNTIME_DIR:-/tmp}"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
+state_file="$state_dir/brightness-all"
+attempts="${OMARCHY_BRIGHTNESS_RESTORE_ATTEMPTS:-6}"
+retry_delay="${OMARCHY_BRIGHTNESS_RESTORE_RETRY_DELAY:-1}"
+watch_interval="${OMARCHY_BRIGHTNESS_WATCH_INTERVAL:-2}"
+
+[[ "$attempts" =~ ^[1-9][0-9]*$ ]] || exit 2
+[[ "$retry_delay" =~ ^[0-9]+([.][0-9]+)?$ ]] || exit 2
+[[ "$watch_interval" =~ ^[1-9][0-9]*([.][0-9]+)?$ ]] || exit 2
+
+load_target() {
+    target=""
+    [[ -r "$state_file" ]] || return 1
+    read -r target < "$state_file" || return 1
+    [[ "$target" =~ ^[0-9]+$ ]] && (( target >= 1 && target <= 100 ))
+}
+
+save_target() {
+    local value="$1" temporary=""
+
+    [[ "$value" =~ ^[0-9]+$ ]] && (( value >= 1 && value <= 100 )) || return 1
+    install -d -m 0700 "$state_dir" || return 1
+    temporary="$(mktemp "$state_dir/brightness-all.tmp.XXXXXX")" || return 1
+    if ! printf '%s\n' "$value" > "$temporary" ||
+        ! chmod 0600 "$temporary" ||
+        ! mv "$temporary" "$state_file"; then
+        rm -f "$temporary"
+        return 1
+    fi
+}
+
+active_monitors() {
+    hyprctl monitors -j 2>/dev/null |
+        jq -r '[.[] | select(.disabled == false and .dpmsStatus != false)]
+            | sort_by(if .focused == true then 0 else 1 end)
+            | .[].name'
+}
+
+capture() {
+    local monitors="" monitor="" value=""
+
+    monitors="$(active_monitors)" || return 1
+    [[ -n "$monitors" ]] || return 1
+    while IFS= read -r monitor; do
+        value="$(omarchy brightness display --monitor "$monitor" 2>/dev/null || true)"
+        if [[ "$value" =~ ^[0-9]+$ ]] && (( value >= 1 && value <= 100 )); then
+            save_target "$value"
+            return
+        fi
+    done <<< "$monitors"
+    return 1
+}
+
+restore_once() {
+    local try=0 monitors="" monitor="" failed=0 result=1
+
+    load_target || return 0
+    exec 9>"$runtime_dir/omarchy-brightness-all.worker.lock"
+    flock -w 5 9 || return 0
+
+    for ((try = 1; try <= attempts; try++)); do
+        monitors="$(active_monitors)" || monitors=""
+        failed=0
+        [[ -n "$monitors" ]] || failed=1
+        while IFS= read -r monitor; do
+            [[ -n "$monitor" ]] || continue
+            omarchy brightness display --no-osd --monitor "$monitor" "$target%" || failed=1
+        done <<< "$monitors"
+        if (( failed == 0 )); then
+            result=0
+            break
+        fi
+        (( try == attempts )) || sleep "$retry_delay"
+    done
+
+    # A knob turn can arrive while this restore owns the shared hardware lock.
+    # Release it explicitly, then hand any queued turn to the normal worker.
+    flock -u 9
+    "$HOME/.local/bin/omarchy-brightness-all" --drain || true
+    return "$result"
+}
+
+monitor_state() {
+    hyprctl monitors -j 2>/dev/null |
+        jq -r '[.[] | select(.disabled == false)] as $monitors
+            | (($monitors | sort_by(.name) | map(.name + ":" + (if .dpmsStatus == false then "0" else "1" end)) | join(","))
+                + "|#|" + (if any($monitors[]; .dpmsStatus != false) then "1" else "0" end))'
+}
+
+watch() {
+    local previous="" snapshot="" signature="" any_on=0 now=0 previous_tick=0 trigger=0
+
+    previous_tick="$EPOCHSECONDS"
+    while true; do
+        now="$EPOCHSECONDS"
+        snapshot="$(monitor_state || true)"
+        if [[ "$snapshot" == *'|#|'* ]]; then
+            signature="${snapshot%|#|*}"
+            any_on="${snapshot##*|#|}"
+            trigger=0
+            if ! load_target; then
+                (( any_on == 1 )) && capture || true
+            elif (( any_on == 1 )); then
+                if [[ -z "$previous" ]] || (( now - previous_tick > 5 )) ||
+                    [[ "$signature" != "$previous" ]]; then
+                    trigger=1
+                fi
+            fi
+            previous="$signature"
+            if (( trigger == 1 )); then
+                sleep 1
+                restore_once || true
+            fi
+        fi
+        previous_tick="$EPOCHSECONDS"
+        sleep "$watch_interval"
+    done
+}
+
+case "$action" in
+    capture) capture ;;
+    once) restore_once ;;
+    watch) watch ;;
+esac

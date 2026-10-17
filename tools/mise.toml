@@ -1,0 +1,35 @@
+# Shared tools installed by ./setup.sh --tools. Keep versions exact and refresh
+# mise.lock for Linux/macOS on x64/ARM64 whenever a pin changes.
+[tools]
+node = "24.12.0"
+python = "3.13.11"
+pnpm = "10.11.0"
+yarn = "4.9.2"
+rtk = { version = "1.0.1", matching = "rtk-oss-" }
+shellcheck = "0.11.0"
+rulesync = { version = "37.0.0", bin = "rulesync" }
+pnpm-shell-completion = "0.5.5"
+gh = "2.102.0"
+aws = "2.38.1"
+
+[tools.gcloud]
+version = "589.0.0"
+url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-{{ version }}-{{ os(macos='darwin') }}-{{ arch(x64='x86_64', arm64='arm') }}.tar.gz"
+strip_components = 1
+bin_path = "bin"
+
+[tool_alias]
+node = "core:node"
+python = "core:python"
+pnpm = "aqua:pnpm/pnpm"
+yarn = "aqua:yarnpkg/berry"
+rtk = "github:rtk-ai/rtk"
+shellcheck = "aqua:koalaman/shellcheck"
+rulesync = "github:dyoshikawa/rulesync"
+pnpm-shell-completion = "github:g-plane/pnpm-shell-completion"
+gh = "aqua:cli/cli"
+aws = "aqua:aws/aws-cli"
+gcloud = "http:gcloud"
+
+[settings]
+lockfile = true

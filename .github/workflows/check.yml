@@ -21,19 +21,31 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y zsh shellcheck
+          sudo apt-get install -y zsh
       - name: Install validation tools on macOS
         if: runner.os == 'macOS'
-        run: brew install zsh shellcheck
+        run: brew install zsh
+      - name: Install pinned mise tools
+        uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
+        with:
+          version: 2026.10.11
+          working_directory: tools
+          install_args: --locked
       - name: Run checks
-        run: make check
+        run: mise -C tools exec -- make -C .. check
 
   omarchy-bash:
     runs-on: ubuntu-latest
     container: archlinux:base
     steps:
       - name: Install validation tools
-        run: pacman -Syu --noconfirm --needed git bash zsh shellcheck make python starship fzf bash-completion libxkbcommon xkeyboard-config lua
+        run: pacman -Syu --noconfirm --needed git bash zsh make starship fzf bash-completion libxkbcommon xkeyboard-config lua
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Install pinned mise tools
+        uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
+        with:
+          version: 2026.10.11
+          working_directory: tools
+          install_args: --locked
       - name: Check both shells and Omarchy 4.0.0.alpha startup contract
-        run: make check
+        run: mise -C tools exec -- make -C .. check

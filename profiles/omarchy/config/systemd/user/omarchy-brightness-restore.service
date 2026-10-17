@@ -1,0 +1,13 @@
+[Unit]
+Description=Restore synchronized monitor brightness after display state changes
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/omarchy-brightness-restore watch
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

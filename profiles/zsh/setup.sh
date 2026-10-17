@@ -64,8 +64,8 @@ Unrecognized distributions fail before setup makes changes.
 For Bash options: ./setup.sh --profile omarchy --help
 
 Components:
-  --core       Install core command-line dependencies
-  --fnm        Install FNM and the configured Node.js version
+  --core       Install system command-line dependencies
+  --tools      Install pinned runtimes and CLI tools through mise
   --zsh        Configure Zsh and plugins
   --all        Install shell components without prompting (excludes AI)
   --configure-modules
@@ -91,7 +91,7 @@ EOF
 
 OPT_AI="skip"
 OPT_CORE="skip"
-OPT_FNM="skip"
+OPT_TOOLS="skip"
 OPT_ZSH="skip"
 MODULE_ACTION="skip"
 
@@ -109,11 +109,11 @@ if [[ "$#" -gt 0 ]]; then
         case "$option" in
             --all)
                 OPT_CORE="install"
-                OPT_FNM="install"
+                OPT_TOOLS="install"
                 OPT_ZSH="install"
                 ;;
             --core) OPT_CORE="install" ;;
-            --fnm) OPT_FNM="install" ;;
+            --tools) OPT_TOOLS="install" ;;
             --zsh) OPT_ZSH="install" ;;
             --configure-modules) PROMPT_MODULES=true ;;
             --enable-aliases) DISABLE_ALIASES_VALUE=false; MODULE_ACTION="write" ;;
@@ -142,15 +142,15 @@ else
     printf '%s\n' "  Dotfiles Interactive Setup"
     printf '%s\n\n' "========================================"
 
-    OPT_CORE="$(prompt_option "1. Install core dependencies (zsh, git, curl, fzf, etc.)?" "yes")"
-    OPT_FNM="$(prompt_option "2. Install FNM and Node.js?" "yes")"
+    OPT_CORE="$(prompt_option "1. Install system dependencies (zsh, git, curl, fzf, etc.)?" "yes")"
+    OPT_TOOLS="$(prompt_option "2. Install mise tools (runtimes, package managers, developer and cloud CLIs)?" "yes")"
     OPT_ZSH="$(prompt_option "3. Configure the Zsh environment and plugins?" "yes")"
     OPT_AI="$(prompt_option "4. Sync global AI instructions and skills?" "no")"
     configure_modules_interactively
 
     printf '\n%s\n' "========================================"
     printf '%-24s %s\n' "Core dependencies:" "$OPT_CORE"
-    printf '%-24s %s\n' "FNM and Node.js:" "$OPT_FNM"
+    printf '%-24s %s\n' "Mise tools:" "$OPT_TOOLS"
     printf '%-24s %s\n' "Zsh environment:" "$OPT_ZSH"
     printf '%-24s %s\n' "Global AI configuration:" "$OPT_AI"
     printf '%-24s %s\n' "Aliases enabled:" "$([[ "$DISABLE_ALIASES_VALUE" == false ]] && printf yes || printf no)"
@@ -169,7 +169,7 @@ fi
 
 log "Executing setup steps..."
 bash "$REPO_ROOT/profiles/zsh/setup/core.sh" "$OPT_CORE"
-bash "$REPO_ROOT/profiles/zsh/setup/fnm.sh" "$OPT_FNM"
+bash "$REPO_ROOT/setup/tools.sh" "$OPT_TOOLS"
 bash "$REPO_ROOT/profiles/zsh/setup/zsh.sh" "$OPT_ZSH" "$REPO_ROOT"
 bash "$REPO_ROOT/profiles/zsh/setup/modules.sh" \
     "$MODULE_ACTION" \

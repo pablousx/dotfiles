@@ -10,7 +10,8 @@ usage() {
 Usage: ./setup.sh --profile omarchy [OPTIONS]
 No options: interactive components, module settings, summary and confirmation.
 Global AI instructions and skills are offered interactively (default: no).
-  --core                 Install Bash helper dependencies through omarchy pkg add
+  --core                 Install system helper dependencies
+  --tools                Install pinned runtimes and CLI tools through mise
   --bash                 Add the guarded Bash startup block
   --all                  Select all shell components (excludes AI)
   --keyboard             Install the saved Spanish AltGr keyboard layout
@@ -57,6 +58,7 @@ for key in "${keys[@]}"; do
 done
 ai=skip
 core=skip
+tools=skip
 startup=skip
 keyboard=skip
 brightness_knob=skip
@@ -68,8 +70,9 @@ for option in "$@"; do
     case "$option" in
         --help|-h) usage; exit 0 ;;
         --core) core=install ;;
+        --tools) tools=install ;;
         --bash) startup=install ;;
-        --all) core=install; startup=install ;;
+        --all) core=install; tools=install; startup=install ;;
         --keyboard)
             [[ "$keyboard" != save ]] || die '--keyboard and --save-keyboard cannot be combined'
             keyboard=install ;;
@@ -93,8 +96,10 @@ detect_platform
 require_profile_platform omarchy
 
 if [[ "$interactive" == true ]]; then
-    choice="$(choose 'Install helper dependencies?' no)" || die 'setup input ended'
+    choice="$(choose 'Install system helper dependencies?' no)" || die 'setup input ended'
     [[ "$choice" == true ]] || core=install
+    choice="$(choose 'Install mise tools (runtimes, package managers, developer and cloud CLIs)?' yes)" || die 'setup input ended'
+    [[ "$choice" == true ]] || tools=install
     choice="$(choose 'Configure Bash startup?' yes)" || die 'setup input ended'
     [[ "$choice" == true ]] || startup=install
     keyboard="$(choose_keyboard)" || die 'setup input ended'
@@ -120,7 +125,7 @@ if [[ "$interactive" == true || "$prompt_modules" == true ]]; then
         install) keyboard_label='US with Spanish AltGr (us-altgr-spanish)' ;;
         save) keyboard_label='Save current us-altgr-spanish layout' ;;
     esac
-    printf 'Omarchy profile: dependencies=%s, Bash startup=%s\n' "$core" "$startup"
+    printf 'Omarchy profile: dependencies=%s, tools=%s, Bash startup=%s\n' "$core" "$tools" "$startup"
     printf 'Keyboard configuration: %s\n' "$keyboard_label"
     printf 'All-monitor brightness knob: %s\n' "$brightness_knob"
     printf 'Global AI configuration: %s\n' "$ai"
@@ -129,8 +134,9 @@ if [[ "$interactive" == true || "$prompt_modules" == true ]]; then
 fi
 if [[ "$core" == install ]]; then
     command -v omarchy >/dev/null 2>&1 || die 'omarchy is required for --core'
-    omarchy pkg add git curl python bash-completion unzip wl-clipboard
+    omarchy pkg add git curl bash-completion unzip xz wl-clipboard
 fi
+bash "$REPO_ROOT/setup/tools.sh" "$tools"
 bash "$SETUP_DIR/bash-startup.sh" "$startup" "$REPO_ROOT"
 bash "$SETUP_DIR/keyboard.sh" "$keyboard"
 bash "$SETUP_DIR/brightness-knob.sh" "$brightness_knob" "$REPO_ROOT"

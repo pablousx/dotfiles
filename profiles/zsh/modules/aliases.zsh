@@ -85,8 +85,3 @@ timezsh(){
   shell=${1-$SHELL}
   for i in $(seq 1 4); do /usr/bin/time $shell -i -c exit; done
 }
-
-# Upload dotfiles to cloud
-upload-dotfiles() {
-  _dotfiles_upload "$@"
-}

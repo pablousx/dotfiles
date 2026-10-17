@@ -45,23 +45,28 @@ if bash "$repo/setup/bash-startup.sh" install "$repo" 2>/dev/null; then exit 1; 
 cmp "$TEMP_ROOT/damaged" "$HOME/.bashrc"
 cp "$TEMP_ROOT/original" "$HOME/.bashrc"
 
-# Mock every mutating external command; --all must only call Omarchy packages.
+# Mock package and tool installation separately.
 cat > "$TEMP_ROOT/bin/omarchy" <<'MOCK'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "$CALL_LOG"
 MOCK
-for tool in chsh fnm mise pacman sudo git curl zsh; do
+for tool in chsh mise pacman sudo git curl zsh; do
     # The generated mock expands CALL_LOG when executed.
     # shellcheck disable=SC2016
     printf '#!/usr/bin/env bash\nprintf "forbidden: %%s\\n" "%s" >> "$CALL_LOG"\nexit 99\n' "$tool" > "$TEMP_ROOT/bin/$tool"
 done
 chmod +x "$TEMP_ROOT/bin/"*
 export CALL_LOG="$TEMP_ROOT/calls"
+# Mise tool installation is mocked separately from the system package manager.
+cat > "$repo/setup/tools.sh" <<'MOCK'
+[[ "$1" == install ]] || exit 0
+printf 'tools %s\n'  "$1" >> "$CALL_LOG"
+MOCK
 PATH="$TEMP_ROOT/bin:$PATH" bash "$repo/setup.sh" --profile omarchy --all --disable-prompt
-[[ $(cat "$CALL_LOG") == 'pkg add git curl python bash-completion unzip wl-clipboard' ]]
+[[ $(cat "$CALL_LOG") == $'pkg add git curl bash-completion unzip xz wl-clipboard\ntools install' ]]
 grep -qx 'DISABLE_PROMPT=true' "$repo/.env.omarchy"
 grep -qx 'DISABLE_ALIASES=true' "$repo/.env"
-if bash "$repo/setup.sh" --profile omarchy --fnm >/dev/null 2>&1; then exit 1; fi
+if bash "$repo/setup.sh" --profile omarchy --zsh >/dev/null 2>&1; then exit 1; fi
 if bash "$repo/setup.sh" --profile wrong >/dev/null 2>&1; then exit 1; fi
 if bash "$repo/setup.sh" --profile >/dev/null 2>&1; then exit 1; fi
 # EOF must abort rather than select defaults and perform changes.
@@ -73,14 +78,14 @@ cmp "$TEMP_ROOT/calls-before-eof" "$CALL_LOG"
 # Cancelled interactive changes preserve both startup and settings.
 cp "$repo/.env.omarchy" "$TEMP_ROOT/settings"
 cp "$HOME/.bashrc" "$TEMP_ROOT/installed"
-printf 'n\nn\nNone\nn\nn\ny\ny\ny\ny\nn\n' > "$TEMP_ROOT/input"
+printf 'n\nn\nn\nNone\nn\nn\ny\ny\ny\ny\nn\n' > "$TEMP_ROOT/input"
 if bash "$repo/setup.sh" --profile omarchy < "$TEMP_ROOT/input" >/dev/null 2>&1; then exit 1; fi
 cmp "$TEMP_ROOT/settings" "$repo/.env.omarchy"
 cmp "$TEMP_ROOT/installed" "$HOME/.bashrc"
 # Zero-argument profile discovery; declining both components still permits explicit settings.
 mkdir -p "$TEMP_ROOT/omarchy/default/bash"
 touch "$TEMP_ROOT/omarchy/default/bash/rc"
-printf 'n\nn\n\nn\nn\ny\ny\ny\ny\ny\n' > "$TEMP_ROOT/input"
+printf 'n\nn\nn\n\nn\nn\ny\ny\ny\ny\ny\n' > "$TEMP_ROOT/input"
 OMARCHY_PATH="$TEMP_ROOT/omarchy" bash "$repo/setup.sh" < "$TEMP_ROOT/input" >/dev/null
 cmp "$TEMP_ROOT/installed" "$HOME/.bashrc"
 

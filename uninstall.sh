@@ -8,17 +8,18 @@ source "$REPO_ROOT/setup/lib.sh"
 
 usage() {
     cat <<'EOF'
-Usage: ./uninstall.sh [--fnm] [--plugins] [--omarchy] [--keyboard] [--brightness-knob]
+Usage: ./uninstall.sh [--tools] [--plugins] [--omarchy] [--keyboard] [--brightness-knob]
 
 With no arguments, the uninstaller prompts for each removable component.
 
-Only installations marked as created by this repository are removed. System
-packages, shell startup files, and Node projects are never removed
+--tools removes only the repository-owned mise config symlink. Mise, installed
+tool versions, system packages, shell startup files, and projects are never removed
 automatically. --omarchy removes only the marked dotfiles block from .bashrc
 (after backup); profile settings and other startup content are retained.
 --keyboard removes only the marked keyboard activation block from input.lua;
 the saved and installed XKB symbol files are retained.
---brightness-knob removes its marked bindings block and the unmodified helper.
+--brightness-knob removes its marked bindings block, unmodified helpers, and
+its user brightness-restore service. The last saved brightness is retained.
 EOF
 }
 
@@ -39,7 +40,7 @@ prompt_removal() {
     done
 }
 
-REMOVE_FNM=false
+REMOVE_TOOLS=false
 REMOVE_PLUGINS=false
 REMOVE_OMARCHY=false
 REMOVE_KEYBOARD=false
@@ -49,7 +50,7 @@ if [[ "$#" -eq 0 ]]; then
     printf '%s\n' "========================================"
     printf '%s\n' "  Dotfiles Interactive Uninstall"
     printf '%s\n\n' "========================================"
-    REMOVE_FNM="$(prompt_removal "Remove FNM installed by these dotfiles?")"
+    REMOVE_TOOLS="$(prompt_removal "Remove the managed mise tool configuration?")"
     REMOVE_PLUGINS="$(prompt_removal "Remove the local Antidote checkout?")"
     if [[ -f "$HOME/.bashrc" ]] && grep -Fxq '# >>> dotfiles omarchy >>>' "$HOME/.bashrc"; then
         REMOVE_OMARCHY="$(prompt_removal "Remove the marked Omarchy Bash startup block?")"
@@ -60,13 +61,15 @@ if [[ "$#" -eq 0 ]]; then
     fi
     if { [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/hypr/bindings.lua" ]] &&
         grep -Fxq -- '-- >>> dotfiles brightness knob >>>' "${XDG_CONFIG_HOME:-$HOME/.config}/hypr/bindings.lua"; } ||
-        [[ -f "$HOME/.local/bin/omarchy-brightness-all" ]]; then
+        [[ -f "$HOME/.local/bin/omarchy-brightness-all" ]] ||
+        [[ -f "$HOME/.local/bin/omarchy-brightness-restore" ]] ||
+        [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/omarchy-brightness-restore.service" ]]; then
         REMOVE_BRIGHTNESS_KNOB="$(prompt_removal "Remove the all-monitor brightness knob setup?")"
     fi
 else
     for option in "$@"; do
         case "$option" in
-            --fnm) REMOVE_FNM=true ;;
+            --tools) REMOVE_TOOLS=true ;;
             --plugins) REMOVE_PLUGINS=true ;;
             --omarchy) REMOVE_OMARCHY=true ;;
             --keyboard) REMOVE_KEYBOARD=true ;;
@@ -77,7 +80,7 @@ else
     done
 fi
 
-if [[ "$REMOVE_FNM" == false && "$REMOVE_PLUGINS" == false &&
+if [[ "$REMOVE_TOOLS" == false && "$REMOVE_PLUGINS" == false &&
     "$REMOVE_OMARCHY" == false && "$REMOVE_KEYBOARD" == false &&
     "$REMOVE_BRIGHTNESS_KNOB" == false ]]; then
     log "No components selected; nothing was removed."
@@ -85,21 +88,21 @@ if [[ "$REMOVE_FNM" == false && "$REMOVE_PLUGINS" == false &&
 fi
 
 printf '%s\n' "Requested removals:"
-[[ "$REMOVE_FNM" == true ]] && printf '%s\n' "  - FNM installed by dotfiles"
+[[ "$REMOVE_TOOLS" == true ]] && printf '%s\n' "  - managed mise tool configuration (installed tools retained)"
 [[ "$REMOVE_PLUGINS" == true ]] && printf '%s\n' "  - repository-local Antidote checkout"
 [[ "$REMOVE_OMARCHY" == true ]] && printf '%s\n' "  - marked Omarchy profile block in .bashrc (settings retained)"
 [[ "$REMOVE_KEYBOARD" == true ]] && printf '%s\n' "  - marked keyboard activation block in input.lua (layout files retained)"
 [[ "$REMOVE_BRIGHTNESS_KNOB" == true ]] &&
-    printf '%s\n' "  - all-monitor brightness bindings and unmodified helper"
+    printf '%s\n' "  - all-monitor brightness bindings, helpers, and restore service"
 read -r -p "Type 'uninstall' to continue: " confirmation
 [[ "$confirmation" == "uninstall" ]] || die "uninstall aborted."
 
-if [[ "$REMOVE_FNM" == true ]]; then
-    fnm_dir="$HOME/.local/share/fnm"
-    if [[ -f "$fnm_dir/.installed-by-dotfiles" ]]; then
-        rm -rf "$fnm_dir"
+if [[ "$REMOVE_TOOLS" == true ]]; then
+    fragment="${MISE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/mise}/conf.d/dotfiles.toml"
+    if [[ -L "$fragment" && "$(readlink "$fragment")" == "$REPO_ROOT/tools/mise.toml" ]]; then
+        rm "$fragment"
     else
-        log "Skipping FNM: $fnm_dir is not marked as installed by this repository."
+        log "Skipping unmanaged mise configuration: $fragment"
     fi
 fi
 

@@ -95,47 +95,6 @@ ZSH_CACHE_DIR="$ZSH_CACHE_DIR" zsh -dfc \
 mv "$plugins_tmp" "$DOTFILES_DIR/profiles/zsh/modules/plugins.zsh"
 trap - EXIT
 
-PNPM_COMPLETION_VERSION="${PNPM_COMPLETION_VERSION:-0.5.5}"
-case "$(uname -s):$(uname -m)" in
-    Darwin:arm64|Darwin:aarch64)
-        pnpm_target="aarch64-apple-darwin"
-        pnpm_sha256="852d2922291b460c151352799c4a7f3cb34133c6b094913ec9d904d64d85b83e"
-        ;;
-    Darwin:x86_64|Darwin:amd64)
-        pnpm_target="x86_64-apple-darwin"
-        pnpm_sha256="fc93ab7e8410892b29d0f2f4905c89d67a41b9ef86c3c5716370e68b4a207b7e"
-        ;;
-    Linux:aarch64|Linux:arm64)
-        pnpm_target="aarch64-unknown-linux-gnu"
-        pnpm_sha256="87fec87f0f52a6bea2344440fd25d2a7498c4a225bcbcbe10fd36186a38a0ba0"
-        ;;
-    Linux:x86_64|Linux:amd64)
-        pnpm_target="x86_64-unknown-linux-gnu"
-        pnpm_sha256="eae0a5ab8dc26e296a9735753cfb569e7e2bcd9f29a686294ac6f68871b0e712"
-        ;;
-    *)
-        die "pnpm-shell-completion has no configured artifact for $(uname -s)/$(uname -m)."
-        ;;
-esac
-
-PNPM_COMPLETION_DIR="${ANTIDOTE_HOME:-$HOME/.cache/antidote}/github.com/g-plane/pnpm-shell-completion"
-if [[ -d "$PNPM_COMPLETION_DIR" ]]; then
-    pnpm_temp="$(mktemp -d)"
-    trap 'rm -rf "$pnpm_temp"' EXIT
-    pnpm_archive="$pnpm_temp/pnpm-shell-completion.tar.gz"
-    pnpm_url="https://github.com/g-plane/pnpm-shell-completion/releases/download/v$PNPM_COMPLETION_VERSION/pnpm-shell-completion_$pnpm_target.tar.gz"
-    curl --fail --silent --show-error --location "$pnpm_url" --output "$pnpm_archive"
-    actual_pnpm_sha256="$(sha256_file "$pnpm_archive")"
-    [[ "$actual_pnpm_sha256" == "$pnpm_sha256" ]] ||
-        die "pnpm-shell-completion checksum mismatch."
-    tar -xzf "$pnpm_archive" -C "$pnpm_temp"
-    pnpm_binary="$(find "$pnpm_temp" -type f -name pnpm-shell-completion -print -quit)"
-    [[ -n "$pnpm_binary" ]] || die "pnpm-shell-completion archive did not contain the expected binary."
-    install -m 0755 "$pnpm_binary" "$PNPM_COMPLETION_DIR/pnpm-shell-completion"
-    trap - EXIT
-    rm -rf "$pnpm_temp"
-fi
-
 if [[ ! -f "$DOTFILES_DIR/.env" ]]; then
     cp "$DOTFILES_DIR/.env.example" "$DOTFILES_DIR/.env"
 fi

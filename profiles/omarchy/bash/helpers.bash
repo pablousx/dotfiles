@@ -5,6 +5,17 @@ _dotfiles_edit() {
     read -r -a editor <<< "${EDITOR:-nano}"
     "${editor[@]}" "$1" && exec bash
 }
+_dotfiles_encode64() {
+    if [[ $# == 0 ]]; then base64; else printf '%s' "$1" | base64; fi
+}
+_dotfiles_decode64() {
+    if [[ $# == 0 ]]; then base64 --decode; else printf '%s' "$1" | base64 --decode; fi
+}
+_dotfiles_encodefile64() {
+    [[ $# == 1 && -f $1 ]] || { printf 'Usage: ef64 FILE\n' >&2; return 2; }
+    base64 -- "$1" > "$1.txt" || return
+    printf '%s\n' "$1's content encoded in base64 and saved as $1.txt"
+}
 _dotfiles_python() {
     python3 "$DOTFILES_DIR/profiles/omarchy/tools.py" "$@"
 }
@@ -12,7 +23,6 @@ _dotfiles_helper() {
     local action="$1"; shift
     case "$action" in
         repo) _dotfiles_git "$@" ;;
-        upload) _dotfiles_upload "$@" ;;
         reload) exec bash ;;
         config) _dotfiles_edit "$DOTFILES_DIR/profiles/omarchy/bash/rc.bash" ;;
         aliases) _dotfiles_edit "$DOTFILES_DIR/profiles/omarchy/bash/helpers.bash" ;;
@@ -87,7 +97,6 @@ _dotfiles_register() {
     fi
 }
 _dotfiles_register dotfiles '_dotfiles_helper repo'
-_dotfiles_register upload-dotfiles '_dotfiles_helper upload'
 while IFS='|' read -r name expansion; do
     _dotfiles_register "$name" "$expansion"
 done <<'ALIASES'
@@ -123,30 +132,20 @@ timebash|_dotfiles_helper timing
 copyfile|_dotfiles_helper copyfile
 copypath|_dotfiles_helper copypath
 x|_dotfiles_helper extract
-e64|_dotfiles_helper e64
-d64|_dotfiles_helper d64
 pp_json|_dotfiles_helper pp_json
 is_json|_dotfiles_helper is_json
 urlencode_json|_dotfiles_helper urlencode_json
 urldecode_json|_dotfiles_helper urldecode_json
 urlencode|_dotfiles_helper urlencode
 urldecode|_dotfiles_helper urldecode
-h|_dotfiles_helper history
-hs|_dotfiles_helper hs
-hsi|_dotfiles_helper hsi
 als|_dotfiles_helper als
 alias-show|_dotfiles_helper inspect
 gi|_dotfiles_helper gi
-gst|git status
-gco|git checkout
-gcm|git checkout main
-gp|git push
-gl|git pull
-glog|git log --oneline --decorate --graph
-dco|docker compose
-dcup|docker compose up
 dcdown|docker compose down
-dce|docker compose exec
 ALIASES
+# shellcheck source=profiles/omarchy/bash/git-helpers.bash
+source "$DOTFILES_DIR/profiles/omarchy/bash/git-helpers.bash"
+# shellcheck source=profiles/omarchy/bash/plugin-aliases.bash
+source "$DOTFILES_DIR/profiles/omarchy/bash/plugin-aliases.bash"
 unset name expansion
 unset -f _dotfiles_register

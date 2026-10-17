@@ -1,22 +1,128 @@
 #!/usr/bin/env bash
 
-# Adjust every active Hyprland display by the same percentage step.
+# Adjust every active Hyprland display to the same percentage target.
 set -Eeuo pipefail
 
 step="${1:-}"
-if [[ ! "$step" =~ ^\+[0-9]+%$ && ! "$step" =~ ^[0-9]+%-$ ]]; then
+drain_only=0
+if [[ "$step" == --drain ]]; then
+    drain_only=1
+elif [[ ! "$step" =~ ^\+[1-9][0-9]*%$ && ! "$step" =~ ^[1-9][0-9]*%-$ ]]; then
     printf 'usage: omarchy-brightness-all [+N%%|N%%-]\n' >&2
     exit 2
+elif [[ "$step" == +* ]]; then
+    delta="${step#+}"
+    delta="${delta%\%}"
+else
+    delta="${step%\%-}"
+    delta=$((-delta))
 fi
+
+runtime_dir="${XDG_RUNTIME_DIR:-/tmp}"
+queue_file="$runtime_dir/omarchy-brightness-all.queue"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
+state_file="$state_dir/brightness-all"
+
+save_target() {
+    local value="$1" temporary=""
+
+    install -d -m 0700 "$state_dir" || return 1
+    temporary="$(mktemp "$state_dir/brightness-all.tmp.XXXXXX")" || return 1
+    if ! printf '%s\n' "$value" > "$temporary" ||
+        ! chmod 0600 "$temporary" ||
+        ! mv "$temporary" "$state_file"; then
+        rm -f "$temporary"
+        return 1
+    fi
+}
+
+# Queue turns under a short-lived lock. A busy worker consumes their sum on
+# its next pass, so quick rotation changes the target rapidly without sending
+# overlapping DDC transactions to the monitors. The restore service uses the
+# internal --drain handoff after releasing this worker lock.
+exec 8>"$runtime_dir/omarchy-brightness-all.queue.lock"
+flock 8
+pending=0
+if [[ -r "$queue_file" ]]; then
+    read -r pending < "$queue_file" || pending=0
+    [[ "$pending" =~ ^-?[0-9]+$ ]] || pending=0
+fi
+if (( drain_only == 0 )); then
+    pending=$((pending + delta))
+    printf '%s\n' "$pending" > "$queue_file"
+fi
+flock -u 8
+(( pending != 0 )) || exit 0
+
+# Exactly one worker performs hardware I/O. Other invocations have already
+# queued their turn above and can return immediately.
+exec 9>"$runtime_dir/omarchy-brightness-all.worker.lock"
+flock -n 9 || exit 0
 
 monitors="$(
     hyprctl monitors -j |
-        jq -r '.[] | select(.disabled == false) | .name'
+        jq -r '[.[] | select(.disabled == false)]
+            | sort_by(if .focused == true then 0 else 1 end)
+            | .[].name'
 )"
 [[ -n "$monitors" ]] || exit 1
 
-failed=0
+# Use the focused display when possible, then fall back to the first readable
+# active display. A single reference keeps every monitor and the OSD on one
+# logical value even when their previous hardware values differed.
+current=""
 while IFS= read -r monitor; do
-    omarchy brightness display --monitor "$monitor" "$step" || failed=1
+    candidate="$(omarchy brightness display --monitor "$monitor" 2>/dev/null || true)"
+    if [[ "$candidate" =~ ^[0-9]+$ ]] && (( candidate >= 0 && candidate <= 100 )); then
+        current="$candidate"
+        break
+    fi
 done <<< "$monitors"
-exit "$failed"
+[[ -n "$current" ]] || exit 1
+
+failed=0
+while true; do
+    flock 8
+    pending=0
+    if [[ -r "$queue_file" ]]; then
+        read -r pending < "$queue_file" || pending=0
+        [[ "$pending" =~ ^-?[0-9]+$ ]] || pending=0
+    fi
+
+    if (( pending == 0 )); then
+        # Release worker ownership while holding the queue lock. A new event
+        # can only enqueue afterward, then it will become the next worker.
+        flock -u 9
+        flock -u 8
+        exit "$failed"
+    fi
+    printf '0\n' > "$queue_file"
+    flock -u 8
+
+    # One percent is the safe hardware floor, not a member of the regular
+    # step grid: upward turns queued at the floor land on N%, not 1 + N%.
+    if (( pending > 0 && current <= 1 )); then
+        target="$pending"
+    else
+        target=$((current + pending))
+    fi
+    (( target < 1 )) && target=1
+    (( target > 100 )) && target=100
+
+    # Publish the logical target before starting DDC/backlight I/O. External
+    # monitor writes can take multiple frames, so sending the OSD afterward
+    # makes its progress bar visibly chase brightness changes during a fast
+    # knob turn.
+    omarchy osd -i brightness -p "$target" || failed=1
+
+    batch_failed=0
+    while IFS= read -r monitor; do
+        omarchy brightness display --no-osd --monitor "$monitor" "$target%" || batch_failed=1
+    done <<< "$monitors"
+    if (( batch_failed == 0 )); then
+        save_target "$target" || failed=1
+    else
+        failed=1
+    fi
+    current="$target"
+done

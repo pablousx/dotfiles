@@ -2,7 +2,7 @@
 
 A modular Zsh environment for macOS, Linux, and WSL, with an additional
 Omarchy/Bash profile. Zsh uses Powerlevel10k, Antidote, cached completions,
-and FNM. Omarchy keeps stock Bash, fzf, mise, and its existing integrations,
+and mise-managed tools. Omarchy keeps stock Bash, fzf, mise, and its existing integrations,
 adding shared helpers and a two-line Starship prompt.
 
 > [!TIP]
@@ -37,12 +37,47 @@ shows a final summary, and asks for confirmation before changing anything.
 Advanced non-interactive flags remain available through `./setup.sh --help`,
 but they are not needed for normal setup.
 
-The default Node.js version is `24.12.0`. Override pinned tool versions when
-needed:
+Both profiles offer these independent selections:
+
+- **System dependencies** (`--core`): the selected platform's shell/helper packages,
+  Git, curl, fzf where needed, and archive/clipboard support.
+- **Mise tools** (`--tools`): Node.js with npm, pnpm, Yarn, Python, RTK OSS,
+  Rulesync, pnpm-shell-completion, ShellCheck, GitHub CLI (`gh`), AWS CLI
+  (`aws`), and Google Cloud CLI (`gcloud`).
+- **Shell configuration** (`--zsh` or `--bash`): startup integration and profile settings.
+- **Global AI configuration**: optional synchronization of instructions and skills.
+
+`--all` selects system dependencies, mise tools, and shell configuration. AI,
+keyboard, and brightness setup remain opt-in. Declining any component leaves it
+unchanged. AI synchronization requires the mise tools selection to have been installed.
+
+Tool versions and backends live in [`tools/mise.toml`](tools/mise.toml).
+[`tools/mise.lock`](tools/mise.lock) records SHA-256 checksums and artifact URLs
+for Linux and macOS on x64 and ARM64. Linux requires glibc. Setup installs with
+`mise --locked`; it does not change the pins. To install just the shared toolset:
 
 ```sh
-NODE_VERSION=24.12.0 FNM_VERSION=1.39.0 ./setup.sh --fnm
+./setup.sh --tools
 ```
+
+Setup reuses mise 2026.10.11 or newer. If mise is absent, it downloads that pinned
+release binary into `~/.local/bin`, verifies SHA-256 before execution, and checks
+its version. An existing older or incompatible mise stops setup for review.
+Bootstrap requires curl and a SHA-256 utility; install system dependencies first
+on a fresh host. Tool extraction requires tar, gzip, xz, and unzip.
+
+Setup links the manifest at
+`${MISE_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/mise}/conf.d/dotfiles.toml`.
+It refuses an occupied destination unless it is already the matching symlink.
+Personal mise configuration and project tool versions retain precedence over
+these defaults. Installation uses the repository manifest and lockfile in
+isolation, so unrelated tools in personal/project configuration are not installed.
+Zsh activates mise once and exposes its shims before plugin loading; Omarchy
+uses its existing mise activation. RTK setup installs only the CLI, without hooks
+or services. Cloud CLI setup does not authenticate accounts or change cloud
+credentials. Gcloud uses a versioned Google archive through mise's HTTP backend;
+it needs no additional mise plugin or installer script. Python helpers and AI
+sync resolve their prerequisites from mise.
 
 Homebrew must already be installed for core setup on macOS. Linux detection reads
 `ID` and `ID_LIKE` from `/etc/os-release` (or `/usr/lib/os-release` when needed),
@@ -73,9 +108,16 @@ to explicitly configure Zsh on a supported platform, including Omarchy.
 
 ## Omarchy / Bash
 
+The profile includes the full portable alias catalogs from the pinned Zsh
+plugins: Git (`gf`, `gfa`, branch-aware helpers), Docker Compose, npm, Yarn,
+history, and base64, plus local shortcuts. Every shortcut also has a `df-` name;
+existing user commands keep their meaning. See the
+[alias coverage and platform differences](docs/omarchy-parity.md).
+
 Omarchy must already be installed. This profile targets Bash 5 and preserves
 Omarchy's mise, zoxide, fzf, Bash completion, editor, and history configuration.
-It adds no Zsh or FNM installation and never changes the login shell.
+It never changes the login shell. Its `--tools` selection shares the portable
+mise toolset.
 
 ```sh
 ./setup.sh --profile omarchy       # Interactive setup and final confirmation
@@ -86,7 +128,8 @@ Advanced automation:
 
 ```sh
 ./setup.sh --profile omarchy --bash  # Only install the guarded startup block
-./setup.sh --profile omarchy --core  # Helper dependencies via omarchy pkg add
+./setup.sh --profile omarchy --core  # System helper packages
+./setup.sh --profile omarchy --tools # Pinned mise tools
 ./setup.sh --profile omarchy --brightness-knob
 ./setup.sh --profile omarchy --enable-prompt
 ./setup.sh --profile omarchy --disable-prompt  # Keep existing Omarchy prompt
@@ -98,7 +141,7 @@ brightness-knob setup are separate and opt-in. Without `--profile`,
 noninteractive commands also use
 the automatically detected profile. Existing automation that needs Zsh on
 Omarchy must pass `--profile zsh` explicitly. The Omarchy profile rejects
-Zsh-only flags such as `--fnm`, `--zsh`, and `--enable-plugins`.
+Zsh-only flags such as `--zsh` and `--enable-plugins`.
 
 Setup backs up `.bashrc` and appends a guarded block after existing configuration.
 Repeated setup does not duplicate it. Keep subsequent personal overrides below
@@ -149,9 +192,9 @@ alias-show ni              # Inspect the alias instead of rewriting the input li
 
 Editors are read from `EDITOR` as a command followed by whitespace-separated
 options; shell expressions and quoting within `EDITOR` are not evaluated.
-Optional tools are checked when invoked. Core setup installs Git, curl, Python,
-Bash completion, unzip, and Wayland clipboard support through Omarchy; it leaves
-Node versions and uncommon archive tools to your existing tool management.
+Optional tools are checked when invoked. Core setup installs Git, curl, Bash completion, unzip, xz, and Wayland clipboard
+support through Omarchy. Mise tools supply Python and Node/package-manager
+commands; uncommon archive tools remain optional.
 
 See the [complete feature and plugin parity table](docs/omarchy-parity.md) for
 command mappings and intentional differences, including live highlighting,
@@ -208,24 +251,41 @@ pad knob programmed to emit `XF86MonBrightnessDown` counter-clockwise and
 Zero-argument interactive Omarchy setup asks whether to enable this behavior
 and defaults to **no**, which leaves existing bindings unchanged. Installation:
 
-- copies the repository helper to `~/.local/bin/omarchy-brightness-all`;
+- copies the adjustment and restore helpers to `~/.local/bin/`;
 - adds a marked block to `${XDG_CONFIG_HOME:-$HOME/.config}/hypr/bindings.lua`;
 - unbinds Omarchy's focused-display 5% brightness actions before installing the
-  all-display 10% replacements; and
+  all-display 10% replacements;
+- enables `omarchy-brightness-restore.service` as a user service; and
 - backs up changed files, then reloads and validates Hyprland in a live session.
 
 The helper discovers active displays on each invocation, so connector names are
-not stored in the dotfiles. Omarchy handles internal panels with `brightnessctl`
-and external monitors with `ddcutil`; external displays must have DDC/CI enabled
-in their on-screen settings.
+not stored in the dotfiles. It derives one target from the focused display,
+applies that absolute value to every active display, and emits one OSD update so
+different monitor response times cannot make the slider jump between values.
+The 1% hardware floor advances to 10% on the next upward knob step. Turns made
+during monitor I/O are coalesced into the next target, making fast knob rotation
+responsive without overlapping hardware writes. Omarchy handles internal
+panels with `brightnessctl` and external monitors with `ddcutil`; external
+displays must have DDC/CI enabled in their on-screen settings.
+
+After every fully successful all-display change, the helper atomically stores
+the synchronized percentage in
+`${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/brightness-all`. The user service
+silently reapplies it at graphical login and after suspend gaps, DPMS wakeups,
+or active-monitor changes. It waits for powered displays and retries failed
+writes without overlapping knob activity. If no value has been saved yet, it
+captures the focused display's live brightness as the initial target instead of
+changing hardware unexpectedly.
 
 The macropad mapping is stored in the device's onboard memory and travels with
 the keyboard. Setup deliberately does not flash USB hardware. If the device is
 factory-reset or replaced, program its knob to emit the two standard brightness
 keys before enabling this component.
 
-Removal deletes only the marked bindings block. It removes the installed helper
-only when its contents still match the repository, preserving local edits.
+Removal deletes only the marked bindings block. It disables the user service
+and removes its unit and installed helpers only when their contents still match
+the repository, preserving local edits. The last saved brightness value remains
+available if the component is installed again.
 
 ## Safe removal
 
@@ -237,10 +297,10 @@ Removal is deliberately separate from installation:
 
 The uninstaller asks which components to remove (including managed Omarchy,
 keyboard, and brightness-knob blocks when present), defaults every answer to
-“no,” shows the removal plan, and requires an explicit confirmation. It only
-removes tool directories marked as created by this repository. It does not
-remove system packages, Node projects, or committed repository files. The
-explicit `--omarchy` option removes only its marked startup block after backup;
+“no,” shows the removal plan, and requires an explicit confirmation. The
+`--tools` option removes only the matching mise configuration symlink.
+Mise itself, shared installed tool versions, system packages, projects, and
+committed repository files are retained. The explicit `--omarchy` option removes only its marked startup block after backup;
 other startup content is preserved.
 
 ## Configuration layout
@@ -292,7 +352,8 @@ old repository-local history is copied there automatically on first startup.
 ```sh
 dotfiles status             # Run Git against this repository
 bundle-plugins              # Regenerate the pinned plugin loader and restart
-upload-dotfiles             # Commit tracked changes and push the current branch
+df up                       # Apply AI, commit changes and push the current branch
+df down                     # Pull with --ff-only and apply AI on this machine
 
 ni / nd / nb / ns           # npm install/dev/build/start
 pni / pnd / pnb / pns       # pnpm install/dev/build/start
@@ -304,8 +365,17 @@ zsh-plugins                 # Edit, regenerate, and restart
 reload                      # Replace the current process with a fresh Zsh
 ```
 
-`upload-dotfiles` stages tracked files only. It refuses detached HEADs, does
-not create empty commits, and stops if commit or push fails.
+`df up` stages tracked changes plus new files under `ai/`, asks for a commit
+message, and pushes the current branch. Other untracked files are excluded.
+It refuses detached HEADs, avoids empty commits, and stops on sync, commit,
+or push errors. `df down` pulls with `--ff-only` and then regenerates AI.
+Both commands apply AI only after it has been installed successfully through
+the interactive setup on that machine. Existing AI conflicts stop generation
+without overwriting local edits; if generation fails after a pull, the checkout
+is already updated and generation can be retried with `./scripts/sync-ai.sh`.
+Edit AI sources in `ai/.rulesync/`, run `df up`, then run `df down` on your
+other machines. These commands do not install missing tools or run shell setup.
+The system disk-usage command remains available as `df -h` (or `command df`).
 
 ## Plugin updates
 
@@ -336,12 +406,11 @@ user configuration are modified. See the parity document for terminal checks.
 
 ## Security and reproducibility
 
-- FNM and pnpm completion binaries use pinned release URLs and SHA-256 hashes.
+- Mise bootstrap and all mise-managed tool artifacts are pinned and SHA-256 verified.
 - Antidote and all shell plugins are pinned to full Git commits.
 - Setup stops immediately when a component fails.
 - Local `.env` text is not evaluated as shell code; only known boolean flags
   are accepted.
-
 
 
 ## Global AI instructions and skills (opt-in)
@@ -361,6 +430,25 @@ Project-specific instructions and skills remain in their projects; this
 repository's `AGENTS.md` is not a global rule. Do not commit credentials,
 absolute personal paths, machine settings, or generated harness files here.
 
+The reusable skills adapted from Wire are `writing-for-agents` (agent guidance),
+`simplify` (behavior-preserving simplification), `retro` (requested session reviews),
+`diagnosing-bugs` (evidence-based diagnosis), `research` (sourced technical research),
+and `vulnerability-validation` (security finding validation). They follow the current
+project's rules without depending on Wire's paths, stack, or other skills. Wire's
+project-specific guidance remains in its checkout; reusable skills are maintained
+only in these canonical dotfiles sources and referenced by name from Wire.
+
+Additional reusable workflows are `correct` (requested corrections), `create-pr`
+(PR submission), `follow-up-on-pr` (feedback and CI), `security-review` (trust-boundary
+audits), `threat-model-generation` (requested threat models), and `domain-modeling`
+(product concepts, lifecycle rules, and invariants). `skill-creation` covers portable
+skill authoring, canonical source placement, prerequisites, and validation alongside
+`writing-for-agents`. Each documents its
+prerequisites and missing-tool behavior. PR workflows use Git plus authenticated
+GitHub CLI or connector access; review/modeling does not require a scanner.
+Project-specific checks still require that project's tools. Skill synchronization
+does not install or authenticate these tools.
+
 On a new Linux or macOS machine, clone this repository anywhere and run:
 
 ```sh
@@ -370,12 +458,10 @@ On a new Linux or macOS machine, clone this repository anywhere and run:
 In interactive setup, answer yes to “Sync global AI instructions and skills?”
 (default: no). Both profiles offer this opt-in; `--all` excludes AI. For
 automation or subsequent updates, use `./scripts/sync-ai.sh` directly.
-It requires Python 3 and curl, available through the existing
-core setup. The verified standalone Rulesync 37.0.0 binary is cached under
-`.cache/rulesync/` inside the checkout. No npm/global package installation,
-Node runtime, daemon, or startup hook is needed. Supported binaries: Linux
-x86_64/ARM64 and macOS Intel/Apple Silicon. RTK instructions assume `rtk` is
-installed separately; this component does not install RTK or Codex.
+It requires the Python and Rulesync versions installed by `./setup.sh --tools`.
+The wrapper resolves their absolute executable paths through the pinned mise
+manifest before generating into an isolated HOME. It does not install missing
+tools: run the tools setup selection first. AI synchronization does not install Codex.
 
 After editing the sources or pulling changes:
 
@@ -389,7 +475,7 @@ The command works from any directory via its checkout path. It always runs
 `rulesync generate --dry-run` before generating into an isolated temporary
 HOME. The wrapper then checks every output and copies only approved files to
 the real HOME. `--dry-run` performs the same checks without writing any global
-files or ownership state (it may download the cached binary).
+files or ownership state. Missing mise tools produce an actionable error.
 
 For Codex, the verified destinations are `~/.codex/AGENTS.md` and
 `~/.agents/skills/<name>/`. The latter is shared with other harnesses.
@@ -417,11 +503,16 @@ rerun synchronization. Preserve copies of referenced files as well. Do not
 remove or replace files merely to silence a conflict without reviewing them.
 
 Omarchy's skills, omai's project-maintained symlinks, Codex system skills and
-plugin-managed skills remain owned by their original installers. No portable
-personal skill was found to migrate. Add future personal skills under the
+plugin-managed skills remain owned by their original installers. Add future
+personal skills under the
 canonical skills directory; do not copy whole Codex/plugin directories or
 machine-specific symlinks into Git. Inspect all skill assets for secrets before
 committing them. Make changes in the canonical sources, not generated copies.
+
+Before adding a skill, review required shell tools, optional tools and non-shell
+capabilities. Document prerequisites and Linux/macOS support in the skill, and
+state what remains unverified when a tool is unavailable. Add approved shared
+dependencies through setup rather than installing them implicitly from a skill.
 
 ### Adding another harness or updating Rulesync
 
@@ -434,7 +525,10 @@ and its preservation tests for those paths, then review a dry run. Sources stay
 in the same place. The explicit guard prevents accidentally writing new kinds
 of configuration before their destinations have been reviewed.
 
-To update the dependency, change the version and all four platform SHA-256
-values in `scripts/sync-ai.sh` using the official release's `SHA256SUMS`.
-Validate real generation in a temporary HOME and run `make check` before using
-the new release on your global configuration.
+To update a tool, edit its exact version in `tools/mise.toml`, then refresh
+`tools/mise.lock` with `mise -C tools lock --platform linux-x64,linux-arm64,macos-x64,macos-arm64`.
+Review all four platform URLs and SHA-256 values. If a release provides no digest,
+calculate SHA-256 from its official artifact and record it in the lock entry;
+`make check` rejects missing checksums. Keep RTK's `rtk-oss-` asset selection.
+Validate Rulesync generation in a temporary HOME when updating it, and run
+`make check` before using the new tools on global configuration.

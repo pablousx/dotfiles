@@ -8,15 +8,40 @@ Every helper below has a `df-` spelling, unless explicitly described otherwise.
 The short spelling is also registered when no existing alias, function, builtin,
 or executable owns it. Neither spelling overwrites a user definition. For
 example, stock `c`, `cx`, `h`, and `gcm` remain Omarchy commands; `df-c` opens
-VS Code, `df-cx` moves up, `df-h` displays history, and `df-gcm` checks out `main`.
-The namespaced Git and Compose shortcuts are a curated subset, not the entire
-Oh My Zsh alias catalog. Use the underlying CLI for other operations.
+VS Code, `df-cx` moves up, `df-h` displays history, and `df-gcm` checks out the
+detected main branch.
+The Git, Docker Compose, npm, Yarn, history, and base64 alias catalogs match the
+pinned Oh My Zsh sources: 284 plugin alias names, plus the existing extraction
+and URL aliases. The local Zsh aliases take precedence over plugin definitions:
+for example, `yi` installs dependencies and `ys` runs `yarn start`.
+
+`gf` / `df-gf` runs `git fetch`; `gfa` fetches all remotes with tags and pruning.
+The catalog lives in `profiles/omarchy/bash/plugin-aliases.bash`. Inspect an
+expansion with `alias df-gf`, or search aliases with `als git`.
+
+Simple aliases expand directly to their commands. Branch-dependent Git aliases
+resolve the current/main/develop branch at invocation. Dependent shortcuts use
+private helper functions so an existing user `ggl`, `gsta`, or `git_main_branch`
+cannot redirect a `df-` command. Helper functions also have public short and
+`df-` spellings, including `gccd`, `ggpnp`, `gbda`, `gbds`, and `grename`.
+
+Git defaults target the modern version shipped with Omarchy. Compose selects
+`docker-compose` when that executable exists, otherwise `docker compose`.
+Yarn defaults match this repository's Zsh configuration (classic flags);
+`ydlx` and `yn` are also available for projects using modern Yarn. `npmE` uses
+`npm prefix` to find `node_modules/.bin`, avoiding the removed `npm bin` command.
+Quote wildcard arguments to `gtl` in Bash; Bash has no Zsh `noglob` modifier.
+
+The remaining differences are shell/platform-specific: Zsh global aliases,
+ZLE widgets, Zsh configuration/bundling commands, and macOS/Ubuntu-only helpers
+are not installed as misleading Bash or Arch commands. AWS functions are
+separate from the plugin's alias catalog and retain the behavior described below.
 
 ## Local configuration and helpers
 
 | Zsh feature | Omarchy/Bash equivalent or limitation |
 | --- | --- |
-| `dotfiles`, `upload-dotfiles` | Shared repository Git implementation; `df-dotfiles`, `df-upload-dotfiles` always avoid Omarchy names. Upload stages tracked files only and checks commit/push failures. |
+| `dotfiles`, `df up`, `df down` | Shared repository Git implementation; `df-dotfiles` is also available. `df up` stages tracked changes and new AI sources, applies opted-in AI, commits and pushes. `df down` pulls with `--ff-only` and applies opted-in AI. Other `df` invocations use the system disk-usage command. |
 | `ni`, `nd`, `nb`, `ns` | Same npm commands. |
 | `pni`, `pnd`, `pnb`, `pns` | Same pnpm commands, using mise's selected runtime. |
 | `yi`, `yd`, `yb`, `ys` | Same Yarn commands. |
@@ -25,7 +50,7 @@ Oh My Zsh alias catalog. Use the underlying CLI for other operations.
 | `cls`, `move_to_bottom` | Clear screen and/or place cursor on the last terminal row. |
 | `cx`, `cz`, `dev` | `df-cx`, `df-cz`, `df-dev`; keep existing commands and zoxide's `cd` integration. |
 | `lc` | `eza -la --group-directories-first`, using Omarchy's listing tool instead of colorls. |
-| `sql` | Existing `$HOME/sqlcl/bin/sql`, checked at invocation; SQLcl is not installed. |
+| `sql` | Existing `$HOME/sqlcl/bin/sql`; SQLcl is not installed. |
 | `open` | Keep Omarchy's implementation; `df-open` explicitly calls `xdg-open`. |
 | `reload` | Replace the current shell with Bash. Open a new terminal to completely discard inherited environment overrides. |
 | `zsh-config`, `zsh-aliases` | `bash-config`, `bash-aliases`, with `df-` forms. Additional `bash-settings` and `bash-prompt` edit this profile's settings and preset. |
@@ -37,8 +62,8 @@ Oh My Zsh alias catalog. Use the underlying CLI for other operations.
 | History and migration | Keep Bash's history file and options; append/read new entries between prompts. Never mix extended Zsh records into Bash history. Concurrent history ordering follows Bash, not Zsh's exact shared-history behavior. |
 | Shell options and navigation | Keep Omarchy's Bash options and zoxide. Zsh glob ordering, directory stack options, and automatic URL quoting are not emulated. |
 | SSH agent hook | Keep the existing user/Omarchy SSH setup; do not introduce another agent initialization. |
-| FNM Node switching | Use Omarchy's mise activation and project configuration. No FNM install, Node download, or runtime configuration rewrite. Existing projects may need a mise tool declaration; this profile does not migrate `.nvmrc` files or enable mise settings. |
-| PATH, editor, terminal integration | Preserve Omarchy/user settings. Tools are resolved from the existing PATH; no hard-coded FNM or pnpm path. |
+| Node switching | Use Omarchy's existing mise activation and project configuration. The optional shared `--tools` selection installs pinned global defaults; explicit personal/project versions win. |
+| PATH, editor, terminal integration | Preserve Omarchy/user settings. Tools are resolved from the existing PATH; no hard-coded runtime or package-manager path. |
 
 ## Active plugin inventory
 
@@ -52,25 +77,25 @@ plus the conditionally loaded platform plugins.
 | `ohmyzsh/ohmyzsh: sudo` | Type/edit `sudo` normally; no double-Escape binding. |
 | `olets/zsh-window-title` | Keep terminal/Omarchy title behavior; no additional preexec title hook. |
 | `ohmyzsh/ohmyzsh: fzf` | Existing Omarchy fzf completion and keybindings, initialized once. |
-| `ohmyzsh/ohmyzsh: git` | `gst`, `gco`, `gcm`, `gp`, `gl`, `glog` and their prefixed forms. Other operations use `git` or Omarchy's helpers. |
+| `ohmyzsh/ohmyzsh: git` | Complete pinned alias catalog, including `gf`, `gfa`, branch-aware checkout/pull/push/rebase, stash, worktree, log, and maintenance shortcuts; Bash implementations of their supporting Git functions. |
 | `ohmyzsh/ohmyzsh: gh` | Packaged/tool-provided Bash completion, discovered through bash-completion. |
 | `ohmyzsh/ohmyzsh: gitignore` | `gi LANGUAGE[,LANGUAGE...]` prints the gitignore.io template through HTTPS; no downloaded text is executed. |
 | `Aloxaf/fzf-tab` | Keep stock Bash Tab behavior and Omarchy fzf selectors. Group switching and command-specific Zsh previews are not reproduced. |
 | `zsh-users/zsh-completions` | Omarchy's bash-completion package and installed CLI completion providers. |
 | `docker/cli` Zsh completion | Installed Docker Bash completion. |
-| `ohmyzsh/ohmyzsh: docker-compose` | `dco`, `dcup`, `dcdown`, `dce` use `docker compose`. |
+| `ohmyzsh/ohmyzsh: docker-compose` | All 19 plugin aliases, including `dcb`, `dcupdb`, `dcdn`, and `dclF`. `dcdown` remains an additional shortcut for `docker compose down`. |
 | `ohmyzsh/ohmyzsh: aws` | Installed AWS CLI completion provider; use native `aws configure list-profiles` and `AWS_PROFILE=name aws ...` in place of OMZ profile mutation helpers. No credentials are modified. |
-| `ohmyzsh/ohmyzsh: npm` | Local npm shortcuts; packaged completion where available. Other OMZ npm aliases use their explicit npm commands. |
+| `ohmyzsh/ohmyzsh: npm` | All 19 plugin aliases, including `npmg`, `npmS`, `npmD`, `npmR`, and `npmE`, plus local npm shortcuts; packaged completion where available. |
 | `g-plane/pnpm-shell-completion` | Installed Bash completion where available, otherwise local script completion. `df-run pnpm SCRIPT` guarantees script-name completion; advanced Zsh workspace/filter previews are not ported. |
-| `ohmyzsh/ohmyzsh: yarn` | Local Yarn shortcuts and installed Bash completion, with script-name fallback. |
+| `ohmyzsh/ohmyzsh: yarn` | All plugin alias names, with local `yi`/`ys` overrides, installed Bash completion, and script-name fallback. |
 | `ohmyzsh/ohmyzsh: copyfile` | `copyfile FILE` using Wayland `wl-copy`. |
 | `ohmyzsh/ohmyzsh: copypath` | `copypath` copies the current directory using `wl-copy`. |
 | `ohmyzsh/ohmyzsh: extract` | `x ARCHIVE`: tar variants, zip, 7z, rar, gzip, bzip2, xz, zstd. Uses installed tools; does not install uncommon extractors. |
 | `ohmyzsh/ohmyzsh: colored-man-pages` | Omarchy's existing bat-based man pager. |
-| `ohmyzsh/ohmyzsh: encode64` | `e64`, `d64` accept text arguments or stdin; UTF-8 text helpers, not arbitrary binary-file conversion. |
+| `ohmyzsh/ohmyzsh: encode64` | `e64`/`encode64`, `d64`/`decode64` accept the first text argument or binary stdin. `ef64`/`encodefile64 FILE` writes base64 to `FILE.txt`. |
 | `ohmyzsh/ohmyzsh: jsontools` | `pp_json`, `is_json`, `urlencode_json`, `urldecode_json`; JSON quoting/unquoting operates on strings. |
 | `ohmyzsh/ohmyzsh: urltools` | `urlencode`, `urldecode`, accepting arguments or stdin. |
-| `ohmyzsh/ohmyzsh: history` | `df-h`, `hs`, `hsi`; preserves Omarchy's `h`. |
+| `ohmyzsh/ohmyzsh: history` | `df-h`, `hl`, `hs`, `hsi`; preserves Omarchy's `h`. Search aliases accept normal grep options and patterns. |
 | `ohmyzsh/ohmyzsh: aliases` | `als PATTERN`, literal alias search, plus `alias-show NAME`. |
 | `hlissner/zsh-autopair` | No automatic delimiter insertion in stock Bash. |
 | `zsh-users/zsh-autosuggestions` | Use history search and fzf Ctrl-R; no inline suggestions. |
@@ -91,6 +116,13 @@ missing capability, a pinned and verified source, and compatibility tests for
 Omarchy's startup and existing keybindings.
 
 ## Validation contract
+
+`make check` compares every catalog entry with a committed inventory extracted
+from the exact pinned plugin sources, checks local override precedence and user
+name preservation, and exercises argument forwarding and branch detection in
+temporary repositories. Plugin manifest changes require a new alias audit and
+fixture refresh; upstream code is never downloaded or sourced during these tests.
+Attribution and the upstream MIT license are kept with the Omarchy profile.
 
 `make check` includes an isolated behavioral fixture of Omarchy `4.0.0.alpha`
 startup ownership and order. It is intentionally not a complete Omarchy install.

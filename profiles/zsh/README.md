@@ -15,3 +15,6 @@ startup files are compatibility links to this directory.
 
 Change plugin pins with the root `scripts/update-plugin-pin.sh` command, which
 updates `modules/plugins.txt` and regenerates `modules/plugins.zsh` here.
+
+Shared runtimes and developer tools are installed with `./setup.sh --tools`,
+using the repository's pinned mise manifest and four-platform lockfile.

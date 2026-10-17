@@ -1,0 +1,926 @@
+{
+  "source": "ohmyzsh/ohmyzsh",
+  "plugins": {
+    "git": {
+      "commit": "59a9740721b734835812121322d6fe4827b0853a",
+      "sha256": "5da590f18a2271b6121ada6073eeee07e1a732690229f581303629a55d4a80aa",
+      "aliases": {
+        "grt": [
+          "cd \"$(git rev-parse --show-toplevel || echo .)\""
+        ],
+        "ggpur": [
+          "ggu"
+        ],
+        "g": [
+          "git"
+        ],
+        "ga": [
+          "git add"
+        ],
+        "gaa": [
+          "git add --all"
+        ],
+        "gapa": [
+          "git add --patch"
+        ],
+        "gau": [
+          "git add --update"
+        ],
+        "gav": [
+          "git add --verbose"
+        ],
+        "gwip": [
+          "git add -A; git rm $(git ls-files --deleted) 2> /dev/null; git commit --no-verify --no-gpg-sign --message \"--wip-- [skip ci]\""
+        ],
+        "gam": [
+          "git am"
+        ],
+        "gama": [
+          "git am --abort"
+        ],
+        "gamc": [
+          "git am --continue"
+        ],
+        "gamscp": [
+          "git am --show-current-patch"
+        ],
+        "gams": [
+          "git am --skip"
+        ],
+        "gap": [
+          "git apply"
+        ],
+        "gapt": [
+          "git apply --3way"
+        ],
+        "gbs": [
+          "git bisect"
+        ],
+        "gbsb": [
+          "git bisect bad"
+        ],
+        "gbsg": [
+          "git bisect good"
+        ],
+        "gbsn": [
+          "git bisect new"
+        ],
+        "gbso": [
+          "git bisect old"
+        ],
+        "gbsr": [
+          "git bisect reset"
+        ],
+        "gbss": [
+          "git bisect start"
+        ],
+        "gbl": [
+          "git blame -w"
+        ],
+        "gb": [
+          "git branch"
+        ],
+        "gba": [
+          "git branch --all"
+        ],
+        "gbd": [
+          "git branch --delete"
+        ],
+        "gbD": [
+          "git branch --delete --force"
+        ],
+        "gbgd": [
+          "LANG=C git branch --no-color -vv | grep \": gone\\]\" | cut -c 3- | awk '{print $1}' | xargs git branch -d"
+        ],
+        "gbgD": [
+          "LANG=C git branch --no-color -vv | grep \": gone\\]\" | cut -c 3- | awk '{print $1}' | xargs git branch -D"
+        ],
+        "gbm": [
+          "git branch --move"
+        ],
+        "gbnm": [
+          "git branch --no-merged"
+        ],
+        "gbr": [
+          "git branch --remote"
+        ],
+        "ggsup": [
+          "git branch --set-upstream-to=origin/$(git_current_branch)"
+        ],
+        "gbg": [
+          "LANG=C git branch -vv | grep \": gone\\]\""
+        ],
+        "gco": [
+          "git checkout"
+        ],
+        "gcor": [
+          "git checkout --recurse-submodules"
+        ],
+        "gcb": [
+          "git checkout -b"
+        ],
+        "gcB": [
+          "git checkout -B"
+        ],
+        "gcd": [
+          "git checkout $(git_develop_branch)"
+        ],
+        "gcm": [
+          "git checkout $(git_main_branch)"
+        ],
+        "gcp": [
+          "git cherry-pick"
+        ],
+        "gcpa": [
+          "git cherry-pick --abort"
+        ],
+        "gcpc": [
+          "git cherry-pick --continue"
+        ],
+        "gclean": [
+          "git clean --interactive -d"
+        ],
+        "gcl": [
+          "git clone --recurse-submodules"
+        ],
+        "gclf": [
+          "git clone --recursive --shallow-submodules --filter=blob:none --also-filter-submodules"
+        ],
+        "gcam": [
+          "git commit --all --message"
+        ],
+        "gcas": [
+          "git commit --all --signoff"
+        ],
+        "gcasm": [
+          "git commit --all --signoff --message"
+        ],
+        "gcs": [
+          "git commit --gpg-sign"
+        ],
+        "gcss": [
+          "git commit --gpg-sign --signoff"
+        ],
+        "gcssm": [
+          "git commit --gpg-sign --signoff --message"
+        ],
+        "gcmsg": [
+          "git commit --message"
+        ],
+        "gcsm": [
+          "git commit --signoff --message"
+        ],
+        "gc": [
+          "git commit --verbose"
+        ],
+        "gca": [
+          "git commit --verbose --all"
+        ],
+        "gca!": [
+          "git commit --verbose --all --amend"
+        ],
+        "gcan!": [
+          "git commit --verbose --all --no-edit --amend"
+        ],
+        "gcans!": [
+          "git commit --verbose --all --signoff --no-edit --amend"
+        ],
+        "gcann!": [
+          "git commit --verbose --all --date=now --no-edit --amend"
+        ],
+        "gc!": [
+          "git commit --verbose --amend"
+        ],
+        "gcn": [
+          "git commit --verbose --no-edit"
+        ],
+        "gcn!": [
+          "git commit --verbose --no-edit --amend"
+        ],
+        "gcf": [
+          "git config --list"
+        ],
+        "gcfu": [
+          "git commit --fixup"
+        ],
+        "gdct": [
+          "git describe --tags $(git rev-list --tags --max-count=1)"
+        ],
+        "gd": [
+          "git diff"
+        ],
+        "gdca": [
+          "git diff --cached"
+        ],
+        "gdcw": [
+          "git diff --cached --word-diff"
+        ],
+        "gds": [
+          "git diff --staged"
+        ],
+        "gdw": [
+          "git diff --word-diff"
+        ],
+        "gdup": [
+          "git diff @{upstream}"
+        ],
+        "gdt": [
+          "git diff-tree --no-commit-id --name-only -r"
+        ],
+        "gf": [
+          "git fetch"
+        ],
+        "gfa": [
+          "git fetch --all --tags --prune --jobs=10",
+          "git fetch --all --tags --prune"
+        ],
+        "gfo": [
+          "git fetch origin"
+        ],
+        "gg": [
+          "git gui citool"
+        ],
+        "gga": [
+          "git gui citool --amend"
+        ],
+        "ghh": [
+          "git help"
+        ],
+        "glgg": [
+          "git log --graph"
+        ],
+        "glgga": [
+          "git log --graph --decorate --all"
+        ],
+        "glgm": [
+          "git log --graph --max-count=10"
+        ],
+        "glods": [
+          "git log --graph --pretty=\"%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%ad) %C(bold blue)<%an>%Creset\" --date=short"
+        ],
+        "glod": [
+          "git log --graph --pretty=\"%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%ad) %C(bold blue)<%an>%Creset\""
+        ],
+        "glola": [
+          "git log --graph --pretty=\"%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%ar) %C(bold blue)<%an>%Creset\" --all"
+        ],
+        "glols": [
+          "git log --graph --pretty=\"%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%ar) %C(bold blue)<%an>%Creset\" --stat"
+        ],
+        "glol": [
+          "git log --graph --pretty=\"%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%ar) %C(bold blue)<%an>%Creset\""
+        ],
+        "glo": [
+          "git log --oneline --decorate"
+        ],
+        "glog": [
+          "git log --oneline --decorate --graph"
+        ],
+        "gloga": [
+          "git log --oneline --decorate --graph --all"
+        ],
+        "glp": [
+          "_git_log_prettily"
+        ],
+        "glg": [
+          "git log --stat"
+        ],
+        "glgp": [
+          "git log --stat --patch"
+        ],
+        "gignored": [
+          "git ls-files -v | grep \"^[[:lower:]]\""
+        ],
+        "gfg": [
+          "git ls-files | grep"
+        ],
+        "gm": [
+          "git merge"
+        ],
+        "gma": [
+          "git merge --abort"
+        ],
+        "gmc": [
+          "git merge --continue"
+        ],
+        "gms": [
+          "git merge --squash"
+        ],
+        "gmff": [
+          "git merge --ff-only"
+        ],
+        "gmom": [
+          "git merge origin/$(git_main_branch)"
+        ],
+        "gmum": [
+          "git merge upstream/$(git_main_branch)"
+        ],
+        "gmtl": [
+          "git mergetool --no-prompt"
+        ],
+        "gmtlvim": [
+          "git mergetool --no-prompt --tool=vimdiff"
+        ],
+        "gl": [
+          "git pull"
+        ],
+        "gpr": [
+          "git pull --rebase"
+        ],
+        "gprv": [
+          "git pull --rebase -v"
+        ],
+        "gpra": [
+          "git pull --rebase --autostash"
+        ],
+        "gprav": [
+          "git pull --rebase --autostash -v"
+        ],
+        "gprom": [
+          "git pull --rebase origin $(git_main_branch)"
+        ],
+        "gpromi": [
+          "git pull --rebase=interactive origin $(git_main_branch)"
+        ],
+        "gprum": [
+          "git pull --rebase upstream $(git_main_branch)"
+        ],
+        "gprumi": [
+          "git pull --rebase=interactive upstream $(git_main_branch)"
+        ],
+        "ggpull": [
+          "git pull origin \"$(git_current_branch)\""
+        ],
+        "gluc": [
+          "git pull upstream $(git_current_branch)"
+        ],
+        "glum": [
+          "git pull upstream $(git_main_branch)"
+        ],
+        "gp": [
+          "git push"
+        ],
+        "gpd": [
+          "git push --dry-run"
+        ],
+        "gpf!": [
+          "git push --force"
+        ],
+        "gpf": [
+          "git push --force-with-lease --force-if-includes",
+          "git push --force-with-lease"
+        ],
+        "gpsup": [
+          "git push --set-upstream origin $(git_current_branch)"
+        ],
+        "gpsupf": [
+          "git push --set-upstream origin $(git_current_branch) --force-with-lease --force-if-includes",
+          "git push --set-upstream origin $(git_current_branch) --force-with-lease"
+        ],
+        "gpv": [
+          "git push --verbose"
+        ],
+        "gpoat": [
+          "git push origin --all && git push origin --tags"
+        ],
+        "gpod": [
+          "git push origin --delete"
+        ],
+        "ggpush": [
+          "git push origin \"$(git_current_branch)\""
+        ],
+        "gpu": [
+          "git push upstream"
+        ],
+        "grb": [
+          "git rebase"
+        ],
+        "grba": [
+          "git rebase --abort"
+        ],
+        "grbc": [
+          "git rebase --continue"
+        ],
+        "grbi": [
+          "git rebase --interactive"
+        ],
+        "grbo": [
+          "git rebase --onto"
+        ],
+        "grbs": [
+          "git rebase --skip"
+        ],
+        "grbd": [
+          "git rebase $(git_develop_branch)"
+        ],
+        "grbm": [
+          "git rebase $(git_main_branch)"
+        ],
+        "grbom": [
+          "git rebase origin/$(git_main_branch)"
+        ],
+        "grbum": [
+          "git rebase upstream/$(git_main_branch)"
+        ],
+        "grf": [
+          "git reflog"
+        ],
+        "gr": [
+          "git remote"
+        ],
+        "grv": [
+          "git remote --verbose"
+        ],
+        "gra": [
+          "git remote add"
+        ],
+        "grrm": [
+          "git remote remove"
+        ],
+        "grmv": [
+          "git remote rename"
+        ],
+        "grset": [
+          "git remote set-url"
+        ],
+        "grup": [
+          "git remote update"
+        ],
+        "grh": [
+          "git reset"
+        ],
+        "gru": [
+          "git reset --"
+        ],
+        "grhh": [
+          "git reset --hard"
+        ],
+        "grhk": [
+          "git reset --keep"
+        ],
+        "grhs": [
+          "git reset --soft"
+        ],
+        "gpristine": [
+          "git reset --hard && git clean --force -dfx"
+        ],
+        "gwipe": [
+          "git reset --hard && git clean --force -df"
+        ],
+        "groh": [
+          "git reset origin/$(git_current_branch) --hard"
+        ],
+        "grs": [
+          "git restore"
+        ],
+        "grss": [
+          "git restore --source"
+        ],
+        "grst": [
+          "git restore --staged"
+        ],
+        "gunwip": [
+          "git rev-list --max-count=1 --format=\"%s\" HEAD | grep -q \"\\--wip--\" && git reset HEAD~1"
+        ],
+        "grev": [
+          "git revert"
+        ],
+        "greva": [
+          "git revert --abort"
+        ],
+        "grevc": [
+          "git revert --continue"
+        ],
+        "grm": [
+          "git rm"
+        ],
+        "grmc": [
+          "git rm --cached"
+        ],
+        "gcount": [
+          "git shortlog --summary --numbered"
+        ],
+        "gsh": [
+          "git show"
+        ],
+        "gsps": [
+          "git show --pretty=short --show-signature"
+        ],
+        "gstall": [
+          "git stash --all"
+        ],
+        "gstaa": [
+          "git stash apply"
+        ],
+        "gstc": [
+          "git stash clear"
+        ],
+        "gstd": [
+          "git stash drop"
+        ],
+        "gstl": [
+          "git stash list"
+        ],
+        "gstp": [
+          "git stash pop"
+        ],
+        "gsta": [
+          "git stash push",
+          "git stash save"
+        ],
+        "gsts": [
+          "git stash show --patch"
+        ],
+        "gst": [
+          "git status"
+        ],
+        "gss": [
+          "git status --short"
+        ],
+        "gsb": [
+          "git status --short --branch"
+        ],
+        "gsi": [
+          "git submodule init"
+        ],
+        "gsu": [
+          "git submodule update"
+        ],
+        "gsd": [
+          "git svn dcommit"
+        ],
+        "git-svn-dcommit-push": [
+          "git svn dcommit && git push github $(git_main_branch):svntrunk"
+        ],
+        "gsr": [
+          "git svn rebase"
+        ],
+        "gsw": [
+          "git switch"
+        ],
+        "gswc": [
+          "git switch --create"
+        ],
+        "gswd": [
+          "git switch $(git_develop_branch)"
+        ],
+        "gswm": [
+          "git switch $(git_main_branch)"
+        ],
+        "gta": [
+          "git tag --annotate"
+        ],
+        "gts": [
+          "git tag --sign"
+        ],
+        "gtv": [
+          "git tag | sort -V"
+        ],
+        "gignore": [
+          "git update-index --assume-unchanged"
+        ],
+        "gunignore": [
+          "git update-index --no-assume-unchanged"
+        ],
+        "gwch": [
+          "git log --patch --abbrev-commit --pretty=medium --raw"
+        ],
+        "gwt": [
+          "git worktree"
+        ],
+        "gwta": [
+          "git worktree add"
+        ],
+        "gwtls": [
+          "git worktree list"
+        ],
+        "gwtmv": [
+          "git worktree move"
+        ],
+        "gwtrm": [
+          "git worktree remove"
+        ],
+        "gstu": [
+          "gsta --include-untracked"
+        ],
+        "gtl": [
+          "gtl(){ git tag --sort=-v:refname -n --list \"${1}*\" }; noglob gtl"
+        ],
+        "gk": [
+          "\\gitk --all --branches &!"
+        ],
+        "gke": [
+          "\\gitk --all $(git log --walk-reflogs --pretty=%h) &!"
+        ]
+      }
+    },
+    "docker-compose": {
+      "commit": "59a9740721b734835812121322d6fe4827b0853a",
+      "sha256": "fd4e3f92694ed5ccfe80125ef3c949f103f3486d8377bc6d411910a5e25f9bb0",
+      "aliases": {
+        "dco": [
+          "$dccmd"
+        ],
+        "dcb": [
+          "$dccmd build"
+        ],
+        "dce": [
+          "$dccmd exec"
+        ],
+        "dcps": [
+          "$dccmd ps"
+        ],
+        "dcrestart": [
+          "$dccmd restart"
+        ],
+        "dcrm": [
+          "$dccmd rm"
+        ],
+        "dcr": [
+          "$dccmd run"
+        ],
+        "dcstop": [
+          "$dccmd stop"
+        ],
+        "dcup": [
+          "$dccmd up"
+        ],
+        "dcupb": [
+          "$dccmd up --build"
+        ],
+        "dcupd": [
+          "$dccmd up -d"
+        ],
+        "dcupdb": [
+          "$dccmd up -d --build"
+        ],
+        "dcdn": [
+          "$dccmd down"
+        ],
+        "dcl": [
+          "$dccmd logs"
+        ],
+        "dclf": [
+          "$dccmd logs -f"
+        ],
+        "dclF": [
+          "$dccmd logs -f --tail 0"
+        ],
+        "dcpull": [
+          "$dccmd pull"
+        ],
+        "dcstart": [
+          "$dccmd start"
+        ],
+        "dck": [
+          "$dccmd kill"
+        ]
+      }
+    },
+    "npm": {
+      "commit": "59a9740721b734835812121322d6fe4827b0853a",
+      "sha256": "109171e28f57a1bdd81208b78c0b773d6b662c4facc44ad203b407ebecbf43d7",
+      "aliases": {
+        "npmg": [
+          "npm i -g "
+        ],
+        "npmS": [
+          "npm i -S "
+        ],
+        "npmD": [
+          "npm i -D "
+        ],
+        "npmF": [
+          "npm i -f"
+        ],
+        "npmE": [
+          "PATH=\"$(npm bin)\":\"$PATH\""
+        ],
+        "npmO": [
+          "npm outdated"
+        ],
+        "npmU": [
+          "npm update"
+        ],
+        "npmV": [
+          "npm -v"
+        ],
+        "npmL": [
+          "npm list"
+        ],
+        "npmL0": [
+          "npm ls --depth=0"
+        ],
+        "npmst": [
+          "npm start"
+        ],
+        "npmt": [
+          "npm test"
+        ],
+        "npmR": [
+          "npm run"
+        ],
+        "npmP": [
+          "npm publish"
+        ],
+        "npmI": [
+          "npm init"
+        ],
+        "npmi": [
+          "npm info"
+        ],
+        "npmSe": [
+          "npm search"
+        ],
+        "npmrd": [
+          "npm run dev"
+        ],
+        "npmrb": [
+          "npm run build"
+        ]
+      }
+    },
+    "yarn": {
+      "commit": "59a9740721b734835812121322d6fe4827b0853a",
+      "sha256": "24268050fde47867ec32f4b13a21f952d28b2a85e10e4e8e90e897b387058a0d",
+      "aliases": {
+        "y": [
+          "yarn"
+        ],
+        "ya": [
+          "yarn add"
+        ],
+        "yad": [
+          "yarn add --dev"
+        ],
+        "yap": [
+          "yarn add --peer"
+        ],
+        "yb": [
+          "yarn build"
+        ],
+        "ycc": [
+          "yarn cache clean"
+        ],
+        "yd": [
+          "yarn dev"
+        ],
+        "yf": [
+          "yarn format"
+        ],
+        "yh": [
+          "yarn help"
+        ],
+        "yi": [
+          "yarn init"
+        ],
+        "yin": [
+          "yarn install"
+        ],
+        "yln": [
+          "yarn lint"
+        ],
+        "ylnf": [
+          "yarn lint --fix"
+        ],
+        "yp": [
+          "yarn pack"
+        ],
+        "yrm": [
+          "yarn remove"
+        ],
+        "yrun": [
+          "yarn run"
+        ],
+        "ys": [
+          "yarn serve"
+        ],
+        "yst": [
+          "yarn start"
+        ],
+        "yt": [
+          "yarn test"
+        ],
+        "ytc": [
+          "yarn test --coverage"
+        ],
+        "yui": [
+          "yarn upgrade-interactive"
+        ],
+        "yup": [
+          "yarn upgrade"
+        ],
+        "yv": [
+          "yarn version"
+        ],
+        "yw": [
+          "yarn workspace"
+        ],
+        "yws": [
+          "yarn workspaces"
+        ],
+        "yy": [
+          "yarn why"
+        ],
+        "yuil": [
+          "yui",
+          "yarn upgrade-interactive --latest"
+        ],
+        "yii": [
+          "yarn install --immutable",
+          "yarn install --frozen-lockfile"
+        ],
+        "yifl": [
+          "yarn install --immutable",
+          "yarn install --frozen-lockfile"
+        ],
+        "ydlx": [
+          "yarn dlx"
+        ],
+        "yn": [
+          "yarn node"
+        ],
+        "yga": [
+          "yarn global add"
+        ],
+        "ygls": [
+          "yarn global list"
+        ],
+        "ygrm": [
+          "yarn global remove"
+        ],
+        "ygu": [
+          "yarn global upgrade"
+        ],
+        "yls": [
+          "yarn list"
+        ],
+        "yout": [
+          "yarn outdated"
+        ],
+        "yuca": [
+          "yarn global upgrade && yarn cache clean"
+        ]
+      }
+    },
+    "history": {
+      "commit": "59a9740721b734835812121322d6fe4827b0853a",
+      "sha256": "f6aa58b56aa161df7d3ef779b3cd0fc0c60c79a55b6590489baaf820eece0c30",
+      "aliases": {
+        "h": [
+          "history"
+        ],
+        "hl": [
+          "history | less"
+        ],
+        "hs": [
+          "history | grep"
+        ],
+        "hsi": [
+          "history | grep -i"
+        ]
+      }
+    },
+    "encode64": {
+      "commit": "59a9740721b734835812121322d6fe4827b0853a",
+      "sha256": "0681e3b734bd0df62068a7a168efdcb1eeab89427ebbba1cffc8859ea8d961f4",
+      "aliases": {
+        "e64": [
+          "encode64"
+        ],
+        "ef64": [
+          "encodefile64"
+        ],
+        "d64": [
+          "decode64"
+        ]
+      }
+    }
+  },
+  "manifest_sha256": "3187eda424872e423ab87bb48828847b768bc6265f8bc5bb2b2bff1942f46221",
+  "existing_utility_aliases": {
+    "extract": [
+      "x"
+    ],
+    "urltools": [
+      "urlencode",
+      "urldecode"
+    ]
+  },
+  "audit_sources": {
+    "aws": "7653967ec40a8f2ae236a6d77c0232985b1ca5c46346b037c648f645a2ac50b5",
+    "gitignore": "1f5c97f903453daaa6959a70a100e5d5e58834613f082323657a8d1450df80a2",
+    "copyfile": "cb653fcddcf15a7b682a1daea637280f4ac6a1d0257b709eb244affeec872837",
+    "copypath": "6bf6e7b06dfde24946a8340eca6d00338d669121637c6ed4b55dac1a4244af81",
+    "extract": "deb336e21530c49a7ea1d421f25ce5735c7aefa48295ade36ebcc33229c3a96e",
+    "jsontools": "a5660f922af4e1eec438c7a425d0f2cd61d66f831d68170bcaa3931a8b2c1535",
+    "urltools": "76dd837a1415afcbde35ad1150f46f129ebb287b0522154ffd78473c98c59813",
+    "aliases": "f02745f692c6504f865a870437adf71ad4d88fecfbb954a7dcdabed7010613b0",
+    "sudo": "a57ca50dd7607af2651db558151cfb2fea0139bf2141b1968b87bb67d95c2c59",
+    "gh": "f55456ba2487c023a87e4b9fa33aa496d21889d54f182d6a37ca2caf6df2f090",
+    "fzf": "94b2b6e00e191e05649a0d37ac8689665b497b417923b5f83c58d184f77068c0",
+    "colored-man-pages": "dcfe5f3afd887c76cff7b4cb902a37744ad1e8812c8fe92fef1f4ac4b59b9cfc",
+    "ubuntu": "12793ae049b8f3ab3093a5c845a694641af2e1ea85ff92da37b40e4767c9670a",
+    "macos": "559153ab9c2de9d0f93611da63c5c6eeb6757306f5e599e64c2a882690410fd7"
+  }
+}

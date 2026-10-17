@@ -25,8 +25,12 @@ done
 pass "Bash syntax"
 
 python3 "$REPO_ROOT/tests/ai.py"
+python3 "$REPO_ROOT/tests/repository.py"
+bash "$REPO_ROOT/tests/tools.sh"
+python3 "$REPO_ROOT/tests/tools.py"
 bash "$REPO_ROOT/tests/platform.sh"
 bash "$REPO_ROOT/tests/omarchy.sh"
+python3 "$REPO_ROOT/tests/plugin-aliases.py"
 bash "$REPO_ROOT/tests/keyboard.sh"
 bash "$REPO_ROOT/tests/brightness-knob.sh"
 python3 "$REPO_ROOT/tests/starship.py"

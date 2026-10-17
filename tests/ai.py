@@ -132,7 +132,8 @@ class InteractiveSetup(unittest.TestCase):
                 setup.mkdir()
                 shutil.copy2(ROOT / "setup/lib.sh", setup / "lib.sh")
                 with (setup / "lib.sh").open("a") as lib:
-                    lib.write("\ndetect_platform() { DETECTED_PROFILE=omarchy; }\n")
+                    lib.write("\ndetect_platform() { DETECTED_PROFILE=omarchy; }\n"
+                              "omarchy() { return 0; }\n")
                 relative = ("profiles/zsh/setup.sh" if profile == "zsh" else
                             "profiles/omarchy/setup/omarchy.sh")
                 script = repo / relative
@@ -140,12 +141,14 @@ class InteractiveSetup(unittest.TestCase):
                 shutil.copy2(ROOT / relative, script)
                 components = (repo / "profiles/zsh/setup" if profile == "zsh" else script.parent)
                 components.mkdir(exist_ok=True)
-                for name in ("core", "fnm", "zsh", "modules", "bash-startup", "keyboard", "brightness-knob"):
+                for name in ("core", "zsh", "modules", "bash-startup", "keyboard", "brightness-knob"):
                     (components / f"{name}.sh").write_text("#!/bin/bash\nexit 0\n")
+                (setup / "tools.sh").write_text('printf "%s" "$1" > "$TOOLS_LOG"\n')
                 (setup / "ai.sh").write_text('printf "%s" "$1" > "$AI_LOG"\n')
                 log = repo / "ai-log"
-                env = dict(os.environ, HOME=str(repo), AI_LOG=str(log))
-                prefix = ["n", "n", "n"] if profile == "zsh" else ["n", "n", "", "n"]
+                tools_log = repo / "tools-log"
+                env = dict(os.environ, HOME=str(repo), AI_LOG=str(log), TOOLS_LOG=str(tools_log))
+                prefix = ["n", "n", "n"] if profile == "zsh" else ["n", "n", "n", "", "n"]
                 modules = ["n"] * (5 if profile == "zsh" else 4)
                 for answer, expected in (("y", "install"), ("n", "skip"), ("", "skip")):
                     result = subprocess.run(["bash", str(script)],
@@ -153,16 +156,27 @@ class InteractiveSetup(unittest.TestCase):
                                             text=True, env=env, capture_output=True)
                     self.assertEqual(result.returncode, 0, result.stderr)
                     self.assertEqual(log.read_text(), expected)
+                    self.assertEqual(tools_log.read_text(), "skip")
                     self.assertIn("Global AI configuration:", result.stdout)
                 log.unlink()
+                tools_log.unlink()
                 cancelled = subprocess.run(["bash", str(script)],
                                            input="\n".join(prefix + ["y"] + modules + ["n", ""]),
                                            text=True, env=env, capture_output=True)
                 self.assertNotEqual(cancelled.returncode, 0)
                 self.assertFalse(log.exists())
+                self.assertFalse(tools_log.exists())
                 removed = subprocess.run(["bash", str(script), "--ai"], env=env, capture_output=True)
                 self.assertNotEqual(removed.returncode, 0)
                 self.assertFalse(log.exists())
+                self.assertFalse(tools_log.exists())
+                for flag, expected in (("--tools", "install"), ("--core", "skip"),
+                                       ("--all", "install")):
+                    automated = subprocess.run(["bash", str(script), flag], env=env,
+                                               capture_output=True, text=True)
+                    self.assertEqual(automated.returncode, 0, automated.stderr)
+                    self.assertEqual(tools_log.read_text(), expected)
+                    self.assertEqual(log.read_text(), "skip")
 
 
 if __name__ == "__main__":

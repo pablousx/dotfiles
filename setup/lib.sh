@@ -159,20 +159,20 @@ install_core_packages() {
         brew)
             command -v brew >/dev/null 2>&1 ||
                 die "Homebrew is required on macOS. Install it from https://brew.sh and rerun setup."
-            brew install zsh git curl nano unzip fzf python
+            brew install zsh git curl nano unzip xz fzf
             ;;
         apt-get)
             run_as_root apt-get update
-            run_as_root apt-get install -y zsh git curl nano unzip fzf ca-certificates python3 python3-venv
+            run_as_root apt-get install -y zsh git curl nano unzip xz-utils fzf ca-certificates
             ;;
         dnf)
-            run_as_root dnf install -y zsh git curl nano unzip fzf ca-certificates python3
+            run_as_root dnf install -y zsh git curl nano unzip xz fzf ca-certificates
             ;;
         pacman)
-            run_as_root pacman -Sy --needed --noconfirm zsh git curl nano unzip fzf ca-certificates python
+            run_as_root pacman -Sy --needed --noconfirm zsh git curl nano unzip xz fzf ca-certificates
             ;;
         zypper)
-            run_as_root zypper --non-interactive install zsh git curl nano unzip fzf ca-certificates python3
+            run_as_root zypper --non-interactive install zsh git curl nano unzip xz fzf ca-certificates
             ;;
         *)
             die "unsupported package manager: $manager"
