@@ -45,13 +45,13 @@ cmp "$temporary/original" "$XDG_CONFIG_HOME/hypr/bindings.lua"
 "$repo/setup.sh" --profile omarchy --help | grep -q -- '--brightness-knob'
 
 # Cancelling after selecting the component must leave both targets untouched.
-printf 'n\nn\n\ny\ny\ny\ny\ny\nn\n' |
+printf 'n\nn\n\ny\nn\ny\ny\ny\ny\nn\n' |
     bash "$repo/setup.sh" --profile omarchy >/dev/null 2>&1 && exit 1
 cmp "$temporary/original" "$XDG_CONFIG_HOME/hypr/bindings.lua"
 [[ ! -e "$HOME/.local/bin/omarchy-brightness-all" ]]
 
 # Interactive Omarchy setup exposes the component and installs it after consent.
-printf 'n\nn\n\ny\ny\ny\ny\ny\ny\n' |
+printf 'n\nn\n\ny\nn\ny\ny\ny\ny\ny\n' |
     bash "$repo/setup.sh" --profile omarchy >/dev/null 2>&1
 grep -Fxq -- '-- >>> dotfiles brightness knob >>>' "$XDG_CONFIG_HOME/hypr/bindings.lua"
 grep -Fq 'o.bind("SUPER + T"' "$XDG_CONFIG_HOME/hypr/bindings.lua"

@@ -67,7 +67,7 @@ Components:
   --core       Install core command-line dependencies
   --fnm        Install FNM and the configured Node.js version
   --zsh        Configure Zsh and plugins
-  --all        Install every component without prompting
+  --all        Install shell components without prompting (excludes AI)
   --configure-modules
                Prompt for all module settings
   --help       Show this help
@@ -84,10 +84,12 @@ Module flags persist these values in .env:
   DISABLE_PRINT_ALIAS_COMPLETION, DISABLE_EXPAND_ALIAS
 
 With no arguments, setup runs interactively. Declining a component leaves the
-existing installation untouched.
+existing installation untouched. Global AI instructions and skills are offered
+interactively (default: no).
 EOF
 }
 
+OPT_AI="skip"
 OPT_CORE="skip"
 OPT_FNM="skip"
 OPT_ZSH="skip"
@@ -143,12 +145,14 @@ else
     OPT_CORE="$(prompt_option "1. Install core dependencies (zsh, git, curl, fzf, etc.)?" "yes")"
     OPT_FNM="$(prompt_option "2. Install FNM and Node.js?" "yes")"
     OPT_ZSH="$(prompt_option "3. Configure the Zsh environment and plugins?" "yes")"
+    OPT_AI="$(prompt_option "4. Sync global AI instructions and skills?" "no")"
     configure_modules_interactively
 
     printf '\n%s\n' "========================================"
     printf '%-24s %s\n' "Core dependencies:" "$OPT_CORE"
     printf '%-24s %s\n' "FNM and Node.js:" "$OPT_FNM"
     printf '%-24s %s\n' "Zsh environment:" "$OPT_ZSH"
+    printf '%-24s %s\n' "Global AI configuration:" "$OPT_AI"
     printf '%-24s %s\n' "Aliases enabled:" "$([[ "$DISABLE_ALIASES_VALUE" == false ]] && printf yes || printf no)"
     printf '%-24s %s\n' "Prompt enabled:" "$([[ "$DISABLE_PROMPT_VALUE" == false ]] && printf yes || printf no)"
     printf '%-24s %s\n' "Plugins enabled:" "$([[ "$DISABLE_PLUGINS_VALUE" == false ]] && printf yes || printf no)"
@@ -175,6 +179,8 @@ bash "$REPO_ROOT/profiles/zsh/setup/modules.sh" \
     "$DISABLE_PLUGINS_VALUE" \
     "$DISABLE_PRINT_ALIAS_COMPLETION_VALUE" \
     "$DISABLE_EXPAND_ALIAS_VALUE"
+
+bash "$REPO_ROOT/setup/ai.sh" "$OPT_AI"
 
 printf '\n%s\n' "========================================"
 log "Setup complete. Restart your terminal or run: exec zsh"

@@ -9,9 +9,10 @@ usage() {
     cat <<'HELP'
 Usage: ./setup.sh --profile omarchy [OPTIONS]
 No options: interactive components, module settings, summary and confirmation.
+Global AI instructions and skills are offered interactively (default: no).
   --core                 Install Bash helper dependencies through omarchy pkg add
   --bash                 Add the guarded Bash startup block
-  --all                  Select all shell components
+  --all                  Select all shell components (excludes AI)
   --keyboard             Install the saved Spanish AltGr keyboard layout
   --save-keyboard        Save the current us-altgr-spanish keymap to this repository
   --brightness-knob      Make brightness keys adjust every active display by 10%
@@ -54,6 +55,7 @@ values=()
 for key in "${keys[@]}"; do
     values+=("$(read_boolean_setting "$REPO_ROOT/.env.omarchy" "$key" false)")
 done
+ai=skip
 core=skip
 startup=skip
 keyboard=skip
@@ -99,6 +101,8 @@ if [[ "$interactive" == true ]]; then
     choice="$(choose 'Configure brightness keys for 10% changes on every active display?' no)" ||
         die 'setup input ended'
     [[ "$choice" == true ]] || brightness_knob=install
+    choice="$(choose 'Sync global AI instructions and skills?' no)" || die 'setup input ended'
+    [[ "$choice" == true ]] || ai=install
     prompt_modules=true
 fi
 if [[ "$prompt_modules" == true ]]; then
@@ -119,6 +123,7 @@ if [[ "$interactive" == true || "$prompt_modules" == true ]]; then
     printf 'Omarchy profile: dependencies=%s, Bash startup=%s\n' "$core" "$startup"
     printf 'Keyboard configuration: %s\n' "$keyboard_label"
     printf 'All-monitor brightness knob: %s\n' "$brightness_knob"
+    printf 'Global AI configuration: %s\n' "$ai"
     for i in 0 1 2 3; do printf '%s=%s\n' "${keys[$i]}" "${values[$i]}"; done
     [[ "$(choose 'Apply these settings?' yes)" == false ]] || die 'setup aborted'
 fi
@@ -139,6 +144,7 @@ if [[ "$write" == true ]]; then
     chmod 0600 "$generated"
     mv "$generated" "$REPO_ROOT/.env.omarchy"
 fi
+bash "$REPO_ROOT/setup/ai.sh" "$ai"
 if [[ "$startup" == install || "$write" == true ]]; then
     log 'Omarchy profile setup complete. Open a new Bash session or run: exec bash'
 else

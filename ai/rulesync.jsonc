@@ -1,0 +1,11 @@
+{
+  "global": true,
+  "targets": [
+    "codexcli"
+  ],
+  "features": [
+    "rules",
+    "skills"
+  ],
+  "delete": false
+}

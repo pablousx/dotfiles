@@ -16,7 +16,7 @@ fail() {
 }
 
 for script in "$REPO_ROOT/setup.sh" "$REPO_ROOT/uninstall.sh" \
-    "$REPO_ROOT/setup/"*.sh "$REPO_ROOT/profiles/"*/setup/*.sh \
+    "$REPO_ROOT/setup/"*.sh "$REPO_ROOT/scripts/"*.sh "$REPO_ROOT/profiles/"*/setup/*.sh \
     "$REPO_ROOT/tests/"*.sh "$REPO_ROOT/tests/fixtures/"*.sh \
     "$REPO_ROOT/modules/shared/"*.sh "$REPO_ROOT/modules/bash/"*.bash \
     "$REPO_ROOT/profiles/omarchy/bash/"*.bash; do
@@ -24,6 +24,7 @@ for script in "$REPO_ROOT/setup.sh" "$REPO_ROOT/uninstall.sh" \
 done
 pass "Bash syntax"
 
+python3 "$REPO_ROOT/tests/ai.py"
 bash "$REPO_ROOT/tests/platform.sh"
 bash "$REPO_ROOT/tests/omarchy.sh"
 bash "$REPO_ROOT/tests/keyboard.sh"

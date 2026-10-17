@@ -341,3 +341,100 @@ user configuration are modified. See the parity document for terminal checks.
 - Setup stops immediately when a component fails.
 - Local `.env` text is not evaluated as shell code; only known boolean flags
   are accepted.
+
+
+
+## Global AI instructions and skills (opt-in)
+
+The canonical, portable AI configuration lives in `ai/`:
+
+- `ai/.rulesync/rules/*.md`: global instructions. Use YAML frontmatter
+  `root: true` for instructions composed into the global `AGENTS.md`.
+- `ai/.rulesync/skills/<name>/SKILL.md`: personal, reusable skills in the
+  standard format (frontmatter `name` and `description`, followed by Markdown).
+  Keep supporting scripts and references in the same skill directory, using
+  relative paths. No sample skills are installed.
+- `ai/rulesync.jsonc`: Rulesync configuration. Initially only `codexcli`,
+  global mode, `rules` and `skills`, with `delete: false`.
+
+Project-specific instructions and skills remain in their projects; this
+repository's `AGENTS.md` is not a global rule. Do not commit credentials,
+absolute personal paths, machine settings, or generated harness files here.
+
+On a new Linux or macOS machine, clone this repository anywhere and run:
+
+```sh
+./setup.sh
+```
+
+In interactive setup, answer yes to “Sync global AI instructions and skills?”
+(default: no). Both profiles offer this opt-in; `--all` excludes AI. For
+automation or subsequent updates, use `./scripts/sync-ai.sh` directly.
+It requires Python 3 and curl, available through the existing
+core setup. The verified standalone Rulesync 37.0.0 binary is cached under
+`.cache/rulesync/` inside the checkout. No npm/global package installation,
+Node runtime, daemon, or startup hook is needed. Supported binaries: Linux
+x86_64/ARM64 and macOS Intel/Apple Silicon. RTK instructions assume `rtk` is
+installed separately; this component does not install RTK or Codex.
+
+After editing the sources or pulling changes:
+
+```sh
+git pull
+./scripts/sync-ai.sh --dry-run
+./scripts/sync-ai.sh
+```
+
+The command works from any directory via its checkout path. It always runs
+`rulesync generate --dry-run` before generating into an isolated temporary
+HOME. The wrapper then checks every output and copies only approved files to
+the real HOME. `--dry-run` performs the same checks without writing any global
+files or ownership state (it may download the cached binary).
+
+For Codex, the verified destinations are `~/.codex/AGENTS.md` and
+`~/.agents/skills/<name>/`. The latter is shared with other harnesses.
+Authentication, sessions, models, `config.toml`, permissions and MCP are outside
+this integration. Existing unrelated skills remain untouched. Removed sources
+do not delete old outputs: review and remove obsolete skills manually.
+
+### Existing content and conflicts
+
+Before writing anything, the wrapper refuses differing, unowned destinations,
+symlinked destinations, duplicate names in legacy `~/.codex/skills/`, and local
+edits to previously installed files. An identical existing file can be adopted.
+Last installed copies are kept locally in `~/.local/state/dotfiles-ai/` to
+recognize safe updates; they are not portable source files. Back up this state
+if needed; losing it makes differing destinations require review again.
+Run one synchronization at a time, with agents and other installers idle.
+
+The original global Codex instructions referenced an external RTK Markdown
+file. Its complete portable text is now in `ai/.rulesync/rules/rtk.md`, without
+the personal path. On a machine that still has the old reference, synchronization
+reports a conflict. Compare the existing instructions (including referenced
+text) with the canonical source, merge any additional instructions into the
+source, then move the old file to a private backup outside the checkout and
+rerun synchronization. Preserve copies of referenced files as well. Do not
+remove or replace files merely to silence a conflict without reviewing them.
+
+Omarchy's skills, omai's project-maintained symlinks, Codex system skills and
+plugin-managed skills remain owned by their original installers. No portable
+personal skill was found to migrate. Add future personal skills under the
+canonical skills directory; do not copy whole Codex/plugin directories or
+machine-specific symlinks into Git. Inspect all skill assets for secrets before
+committing them. Make changes in the canonical sources, not generated copies.
+
+### Adding another harness or updating Rulesync
+
+Add the desired target to `ai/rulesync.jsonc`, keeping global mode, features
+limited to rules/skills and deletion disabled. Check its global support and
+output paths in the [Rulesync global-mode documentation](https://rulesync.dyoshikawa.com/guide/global-mode)
+and [supported tools](https://rulesync.dyoshikawa.com/reference/supported-tools).
+Extend the configuration guard and destination allowlist in `scripts/sync-ai.py`
+and its preservation tests for those paths, then review a dry run. Sources stay
+in the same place. The explicit guard prevents accidentally writing new kinds
+of configuration before their destinations have been reviewed.
+
+To update the dependency, change the version and all four platform SHA-256
+values in `scripts/sync-ai.sh` using the official release's `SHA256SUMS`.
+Validate real generation in a temporary HOME and run `make check` before using
+the new release on your global configuration.

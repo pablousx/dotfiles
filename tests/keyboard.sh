@@ -29,13 +29,13 @@ bash "$repo/setup/keyboard.sh" skip
 cmp "$temporary/original" "$XDG_CONFIG_HOME/hypr/input.lua"
 [[ ! -d "$XDG_CONFIG_HOME/xkb" ]]
 # Interactive layout selection installs the saved keyboard after confirmation.
-printf 'n\nn\ninvalid\n2\nn\ny\ny\ny\ny\ny\n' | bash "$repo/setup.sh" --profile omarchy
+printf 'n\nn\ninvalid\n2\nn\nn\ny\ny\ny\ny\ny\n' | bash "$repo/setup.sh" --profile omarchy
 cmp "$repo/config/xkb/symbols/us-altgr-spanish" "$XDG_CONFIG_HOME/xkb/symbols/us-altgr-spanish"
 grep -Fq 'kb_layout = "us-altgr-spanish"' "$XDG_CONFIG_HOME/hypr/input.lua"
 cp "$XDG_CONFIG_HOME/hypr/input.lua" "$temporary/installed"
 # Accepting None must preserve an already installed layout and avoid a reload.
 cp "$KEYBOARD_CALLS" "$temporary/calls-before-none"
-printf 'n\nn\n\nn\ny\ny\ny\ny\ny\n' | bash "$repo/setup.sh" --profile omarchy
+printf 'n\nn\n\nn\nn\ny\ny\ny\ny\ny\n' | bash "$repo/setup.sh" --profile omarchy
 cmp "$temporary/installed" "$XDG_CONFIG_HOME/hypr/input.lua"
 cmp "$temporary/calls-before-none" "$KEYBOARD_CALLS"
 bash "$repo/setup.sh" --profile omarchy --keyboard
