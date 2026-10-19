@@ -559,10 +559,10 @@ uses bounded retries; if it fails, the copied files remain and setup can be
 retried without losing pending initial activation. UI snapshots use distinct
 entry-point paths and an atomic manifest switch to avoid stale QML caches.
 
-The native bar icon opens **Subir**, **Descargar**, and **Resolver con AI** when
-an operation fails. Pressing **Subir** generates a UTC timestamp commit message;
+The native bar icon opens **Upload**, **Download**, and **Resolve with AI** when
+an operation fails. Pressing **Upload** generates a UTC timestamp commit message;
 `df up` keeps its interactive prompt. Uploads are always manual. The panel follows
-omadocs styling and includes an **Ajustes** tab. Checks default to five minutes;
+omadocs styling and includes a **Settings** tab. Checks default to five minutes;
 automatic download is off. The panel distinguishes a successful Git update
 from failure to apply AI. Network/authentication failures retry silently on
 later checks, without recurring dialogs.
@@ -576,7 +576,7 @@ for user-run GitHub CLI credential-helper setup when already authenticated.
 Explicit GitHub workflow-permission refusals preserve local commits and explain
 how to grant access in a terminal. For an existing GitHub CLI OAuth login, run
 `rtk gh auth refresh --hostname github.com --scopes workflow`, approve access,
-then retry **Subir**. The plugin never changes credentials or scopes.
+then retry **Upload**. The plugin never changes credentials or scopes.
 
 See [omasync/README.md](omasync/README.md) for settings, safety guarantees,
 AI recovery, removal, and validation limits. The shared engine supports Linux

@@ -36,7 +36,7 @@ reports that the files were copied and can be retried with
 activation pending so a retry also enables it; updates keep existing enabled
 or disabled state and placement. The installer never restarts the shell.
 
-The **Ajustes** tab offers check intervals and an opt-in automatic-download
+The **Settings** tab offers check intervals and an opt-in automatic-download
 button, persisted through Omarchy's host API while preserving other settings.
 You can also edit the widget's existing `shell.json` bar layout entry:
 
@@ -59,9 +59,13 @@ the UI marked as synchronizing.
 
 ## Behavior
 
+The interface is entirely in English. The plugin and `df up` / `df down` use
+the same shared Git backend; neither uses GitHub CLI (`gh`) to synchronize.
+The optional `gh` commands below are manual GitHub authentication setup only.
+
 Icons distinguish updated, local changes, remote changes, synchronizing and
 error. Counts in the panel reveal when local and remote commits both exist.
-**Subir** creates its commit message automatically with a UTC timestamp, e.g.
+**Upload** creates its commit message automatically with a UTC timestamp, e.g.
 `dotfiles updated 2026-10-17T18:42:03Z`, without opening a terminal or requesting
 text. `df up` keeps its interactive message and date fallback. Both apply
 opted-in AI first, stage tracked files
@@ -83,7 +87,7 @@ reset, force push or conflict resolution. A second remote race also stops for
 a later explicit retry. Existing merges/rebases are never cancelled or adopted
 by this process. Downloads remain fast-forward-only.
 
-**Descargar** requires a clean checkout (including untracked files), an attached
+**Download** requires a clean checkout (including untracked files), an attached
 branch and upstream, fetches, performs a fast-forward-only merge, then applies
 AI through the unchanged `scripts/sync-ai.sh`. `df down` uses the same checks.
 Automatic download additionally rejects local commits. An active merge,
@@ -96,8 +100,8 @@ files. This does not serialize unrelated Git clients or a separately invoked
 
 State is atomically saved in the checkout's Git directory as
 `omasync-state.json` with owner-only permissions. A successful Git update
-followed by a Rulesync failure stays visibly marked **Repositorio actualizado;
-la configuración AI no pudo aplicarse**. Download retries AI even if Git is
+followed by a Rulesync failure stays visibly marked **Repository updated;
+AI configuration could not be applied**. Download retries AI even if Git is
 already current. Checks preserve operation errors; a successful sync clears
 them. AI generation pending after an interruption is also an error. AI output
 is never imported back into source or overwritten outside existing Rulesync
@@ -123,7 +127,7 @@ terminal with `rtk gh auth setup-git --hostname github.com`. This user-run
 command changes Git's credential-helper configuration; omasync never runs it.
 For other hosts or SSH, configure the appropriate Git authentication yourself
 using the host's instructions. No tool is installed or configured by the plugin.
-Then retry **Subir**. A successful fetch (for example, from a public repository)
+Then retry **Upload**. A successful fetch (for example, from a public repository)
 does not establish permission to push and does not clear an unresolved upload
 or AI failure. Successful synchronization clears its saved error metadata.
 
@@ -131,21 +135,21 @@ If GitHub refuses to create or update a workflow because the login lacks
 workflow access, omasync reports **GitHub workflow permission required** and
 keeps the local commits for retry. With an existing GitHub CLI OAuth login,
 run `rtk gh auth refresh --hostname github.com --scopes workflow` yourself in
-a terminal, approve the requested access, then retry **Subir**. Personal access
+a terminal, approve the requested access, then retry **Upload**. Personal access
 tokens and GitHub Apps require the corresponding workflow permission through
 their own authorization settings. The plugin never changes credentials or
 requests additional scopes. This category applies only to GitHub's explicit
 workflow-permission refusal; unrelated exit 1 failures retain their own error.
 A push dry-run cannot verify GitHub's server-side workflow authorization.
 The local-changes label describes the checkout; the failure appears under
-**Requiere atención**. Untracked files outside `ai/` are left untouched by upload.
+**Needs attention**. Untracked files outside `ai/` are left untouched by upload.
 
 The read-only `io.github.pablousx.omasync` IPC target exposes `diagnostics` for
 all live monitor instances: busy/checking flags, process-running flags, status
 and active action. It contains no paths, error text, logs or credentials and
 does not run synchronization or alter state.
 
-## Resolver con AI
+## Resolve with AI
 
 Uses the official `omarchy agent prompt` route and its configured default
 agent, with the repository as working directory. It does not select or install

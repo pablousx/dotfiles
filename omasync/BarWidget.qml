@@ -19,16 +19,16 @@ BarWidget {
     readonly property string busyLabel: {
         var action = snapshot.status === "syncing" && snapshot.busy_operation
             ? snapshot.busy_operation : worker.running ? activeAction : ""
-        return ({tick: "Comprobando remotos…", check: "Comprobando remotos…",
-            up: "Subiendo…", upload: "Subiendo…", down: "Descargando…",
-            download: "Descargando…", "auto-down": "Descargando…",
-            resolve: "Abriendo AI…"})[action] || "Sincronizando…"
+        return ({tick: "Checking remote…", check: "Checking remote…",
+            up: "Uploading…", upload: "Uploading…", down: "Downloading…",
+            download: "Downloading…", "auto-down": "Downloading…",
+            resolve: "Opening AI…"})[action] || "Syncing…"
     }
     readonly property int intervalSeconds: Math.max(30, Math.min(86400, Number(root.setting("intervalSeconds", 300)) || 300))
     readonly property bool autoDownload: root.setting("autoDownload", false) === true
     readonly property bool canConfigure: !!(bar && bar.shell && typeof bar.shell.updateEntryInline === "function")
-    readonly property string label: ({updated: "Actualizado", local: "Cambios locales",
-        remote: "Cambios remotos", syncing: "Sincronizando", error: "Error", unknown: "Sin comprobar"})[snapshot.status] || "Error"
+    readonly property string label: ({updated: "Up to date", local: "Local changes",
+        remote: "Remote changes", syncing: "Syncing", error: "Error", unknown: "Not checked"})[snapshot.status] || "Error"
     readonly property bool opened: popup.item ? popup.item.opened : false
     readonly property bool popoutSwitchClosing: popup.item ? popup.item.popoutSwitchClosing : false
     function open() { if (popup.item) popup.item.open() }
@@ -76,7 +76,7 @@ BarWidget {
             acceptSnapshot(state)
         }
         catch (error) {
-            acceptSnapshot({status: "error", error: "No se pudo leer el repositorio. Reintenta la comprobación."})
+            acceptSnapshot({status: "error", error: "Could not read the repository. Try checking again."})
         }
         if (refreshPending) Qt.callLater(readStatus)
     }
@@ -142,7 +142,7 @@ BarWidget {
         stderr: StdioCollector {}
         onExited: function(code) {
             if (code !== 0 && root.activeAction === "resolve")
-                root.launcherError = "No se pudo abrir la AI predeterminada. Revisa Omarchy y reintenta."
+                root.launcherError = "Could not open the default AI. Check Omarchy and try again."
             root.activeAction = ""
             Qt.callLater(root.readStatus)
         }

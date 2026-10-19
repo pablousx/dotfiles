@@ -15,15 +15,15 @@ UI.Panel {
     readonly property var snapshot: hostWidget ? hostWidget.snapshot : ({})
     readonly property bool busy: hostWidget ? hostWidget.busy : true
     readonly property bool hasError: snapshot.status === "error"
-    readonly property string stateLabel: busy && hostWidget ? hostWidget.busyLabel : hostWidget ? hostWidget.label : "Conectando…"
-    readonly property string aiLabel: ({applied: "Aplicada", disabled: "No activada en este equipo",
-        pending: "Pendiente de aplicar", failed: "No se pudo aplicar", unknown: "Sin comprobar"})[snapshot.ai] || "Sin comprobar"
+    readonly property string stateLabel: busy && hostWidget ? hostWidget.busyLabel : hostWidget ? hostWidget.label : "Connecting…"
+    readonly property string aiLabel: ({applied: "Applied", disabled: "Not enabled on this machine",
+        pending: "Pending application", failed: "Could not apply", unknown: "Not checked"})[snapshot.ai] || "Not checked"
     readonly property string errorText: {
         if (snapshot.repo_updated && (snapshot.ai === "failed" || snapshot.ai === "pending"))
-            return "Repositorio actualizado; la configuración AI no pudo aplicarse. Descargar reintenta Rulesync."
+            return "Repository updated; AI configuration could not be applied. Download retries Rulesync."
         if (snapshot.error) return snapshot.error
-        if (snapshot.in_progress) return "Hay una operación de Git en curso. Revísala antes de sincronizar."
-        if (!busy && snapshot.upstream === false) return "Se requiere una rama con upstream."
+        if (snapshot.in_progress) return "A Git operation is in progress. Review it before syncing."
+        if (!busy && snapshot.upstream === false) return "A branch with an upstream is required."
         return ""
     }
     function switchPanel(direction) {
@@ -90,7 +90,7 @@ UI.Panel {
                     spacing: Style.space(4)
                     Repeater {
                         id: navigation
-                        model: ["Sincronización", "Ajustes"]
+                        model: ["Sync", "Settings"]
                         UiAction {
                             required property int index
                             required property string modelData
@@ -110,9 +110,9 @@ UI.Panel {
                     spacing: Style.space(12)
                     RowLayout {
                         Layout.fillWidth: true
-                        UiText { Layout.fillWidth: true; text: "Repositorio"; section: true }
+                        UiText { Layout.fillWidth: true; text: "Repository"; section: true }
                         UiAction {
-                            text: "Comprobar"
+                            text: "Check"
                             enabled: root.hostWidget && !root.busy
                             onClicked: root.hostWidget.check()
                         }
@@ -126,44 +126,44 @@ UI.Panel {
                     }
                     UiText {
                         Layout.fillWidth: true
-                        text: root.busy && root.hostWidget ? root.hostWidget.busyLabel : root.snapshot.dirty ? "Cambios locales sin guardar" : "Directorio de trabajo limpio"
+                        text: root.busy && root.hostWidget ? root.hostWidget.busyLabel : root.snapshot.dirty ? "Uncommitted changes" : "Working tree clean"
                     }
                     RowLayout {
                         Layout.fillWidth: true
-                        UiText { Layout.fillWidth: true; text: "Por subir: " + (root.snapshot.ahead === undefined ? "…" : root.snapshot.ahead); secondary: true }
-                        UiText { text: "Por descargar: " + (root.snapshot.behind === undefined ? "…" : root.snapshot.behind); secondary: true }
+                        UiText { Layout.fillWidth: true; text: "To upload: " + (root.snapshot.ahead === undefined ? "…" : root.snapshot.ahead); secondary: true }
+                        UiText { text: "To download: " + (root.snapshot.behind === undefined ? "…" : root.snapshot.behind); secondary: true }
                     }
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: Style.space(4)
                         UiAction {
                             Layout.fillWidth: true
-                            text: "Subir"
+                            text: "Upload"
                             primary: true
-                            tooltipText: "Crear un commit con timestamp UTC y subir los cambios"
+                            tooltipText: "Create a commit with a UTC timestamp and upload changes"
                             enabled: root.hostWidget && !root.busy
                             onClicked: root.hostWidget.run("upload")
                         }
                         UiAction {
                             Layout.fillWidth: true
-                            text: "Descargar"
+                            text: "Download"
                             enabled: root.hostWidget && !root.busy
                             onClicked: root.hostWidget.run("download")
                         }
                     }
                     UI.PanelSeparator { Layout.fillWidth: true; foreground: Color.foreground }
-                    UiText { text: "Configuración AI"; section: true }
+                    UiText { text: "AI configuration"; section: true }
                     UiText { Layout.fillWidth: true; text: root.aiLabel }
-                    UiText { Layout.fillWidth: true; text: "Las subidas se realizan solo al pulsar Subir."; secondary: true }
+                    UiText { Layout.fillWidth: true; text: "Uploads only run when you click Upload."; secondary: true }
                 }
                 ColumnLayout {
                     Layout.fillWidth: true
                     visible: root.tab === 1
                     spacing: Style.space(12)
-                    UiText { text: "Comprobación periódica"; section: true }
+                    UiText { text: "Periodic checks"; section: true }
                     UiText {
                         Layout.fillWidth: true
-                        text: "Cada " + (root.hostWidget ? root.hostWidget.intervalSeconds : 300) + " segundos"
+                        text: "Every " + (root.hostWidget ? root.hostWidget.intervalSeconds : 300) + " seconds"
                         secondary: true
                     }
                     RowLayout {
@@ -184,9 +184,9 @@ UI.Panel {
                     UI.PanelSeparator { Layout.fillWidth: true; foreground: Color.foreground }
                     RowLayout {
                         Layout.fillWidth: true
-                        UiText { Layout.fillWidth: true; text: "Descarga automática"; section: true }
+                        UiText { Layout.fillWidth: true; text: "Automatic download"; section: true }
                         UiAction {
-                            text: root.hostWidget && root.hostWidget.autoDownload ? "Activada" : "Desactivada"
+                            text: root.hostWidget && root.hostWidget.autoDownload ? "Enabled" : "Disabled"
                             primary: root.hostWidget && root.hostWidget.autoDownload
                             enabled: root.hostWidget && root.hostWidget.canConfigure
                             onClicked: root.hostWidget.configure("autoDownload", !root.hostWidget.autoDownload)
@@ -194,7 +194,7 @@ UI.Panel {
                     }
                     UiText {
                         Layout.fillWidth: true
-                        text: "Solo con el checkout limpio, upstream y avance fast-forward. Las subidas siempre son manuales."
+                        text: "Requires a clean checkout, an upstream and a fast-forward update. Uploads are always manual."
                         secondary: true
                     }
                 }
@@ -203,10 +203,10 @@ UI.Panel {
                     visible: root.errorText !== ""
                     spacing: Style.space(8)
                     UI.PanelSeparator { Layout.fillWidth: true; foreground: Color.foreground }
-                    UiText { text: "Requiere atención"; section: true }
+                    UiText { text: "Needs attention"; section: true }
                     UiText { Layout.fillWidth: true; text: root.errorText }
                     UiAction {
-                        text: "Resolver con AI"
+                        text: "Resolve with AI"
                         visible: root.hasError
                         enabled: root.hostWidget && !root.busy
                         onClicked: root.hostWidget.run("resolve")
