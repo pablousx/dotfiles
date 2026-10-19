@@ -156,6 +156,8 @@ source "$TEST_REPO/modules/bash/rc.bash"
 ! alias df-ni &>/dev/null
 RUNTIME
 STARSHIP_CONFIG=/explicit/user.toml DISABLE_ALIASES=true bash --noprofile --norc -i "$TEMP_ROOT/overrides.bash" 2>/dev/null
+# Explicitly empty environment values remain protected from persisted settings.
+STARSHIP_CONFIG='' DISABLE_ALIASES='' bash --noprofile --norc -ic 'source "$TEST_REPO/modules/bash/rc.bash"; [[ -v STARSHIP_CONFIG && -z $STARSHIP_CONFIG && $DISABLE_ALIASES == true ]]' 2>/dev/null
 # Deliberate unevaluated payload to verify the settings parser.
 # shellcheck disable=SC2016
 printf 'DISABLE_ALIASES=$(touch malicious)\nDISABLE_PROMPT=true\nUNKNOWN=true\n' > "$repo/.env.omarchy"

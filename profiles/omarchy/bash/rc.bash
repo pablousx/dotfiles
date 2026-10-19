@@ -9,7 +9,7 @@ _dotfiles_bash_settings() {
     local key value protected=':'
     local settings="$DOTFILES_DIR/.env.omarchy"
     for key in DISABLE_ALIASES DISABLE_PROMPT DISABLE_COMPLETIONS DISABLE_HISTORY_SYNC; do
-        [[ ! -v $key ]] || protected="$protected$key:"
+        [[ -z ${!key+x} ]] || protected="$protected$key:"
     done
     if [[ -r "$settings" ]]; then
         while IFS='=' read -r key value || [[ -n "$key" ]]; do
@@ -32,7 +32,7 @@ _dotfiles_bash_settings() {
 _dotfiles_bash_settings
 unset -f _dotfiles_bash_settings
 
-if [[ "$DISABLE_PROMPT" == false && ! -v STARSHIP_CONFIG ]]; then
+if [[ "$DISABLE_PROMPT" == false && -z ${STARSHIP_CONFIG+x} ]]; then
     [[ "$EUID" != 0 ]] || export DOTFILES_ROOT_CONTEXT=1
     export STARSHIP_CONFIG="$DOTFILES_DIR/profiles/omarchy/config/starship-omarchy.toml"
 fi

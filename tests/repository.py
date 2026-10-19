@@ -52,6 +52,21 @@ class RepositoryCommands(unittest.TestCase):
         marker.parent.mkdir(parents=True)
         marker.write_text("managed")
 
+    def test_git_helper_uses_repository_and_preserves_arguments(self):
+        result = subprocess.run(
+            ["bash", "-c", 'source "$1"; shift; _dotfiles_git "$@"', "_",
+             str(ROOT / "shared/repository.sh"), "rev-parse", "--show-toplevel"],
+            cwd=self.home, env=self.env, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), str(self.repo))
+        (self.repo / "file with spaces").write_text("tracked")
+        result = subprocess.run(
+            ["bash", "-c", 'source "$1"; shift; _dotfiles_git "$@"', "_",
+             str(ROOT / "shared/repository.sh"), "add", "--", "file with spaces"],
+            cwd=self.home, env=self.env, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.git("diff", "--cached", "--name-only").strip(), "file with spaces")
+
     def test_upload_includes_new_ai_only(self):
         self.enable_ai()
         (self.repo / "ai/new-skill.md").write_text("new")

@@ -1,5 +1,9 @@
 # shellcheck shell=bash
 # Shared by Bash and Zsh; no shell options or startup hooks.
+_dotfiles_git() {
+    command git -C "$DOTFILES_DIR" "$@"
+}
+
 _dotfiles_repository() {
     command python3 "$DOTFILES_DIR/omasync/sync.py" --repo "$DOTFILES_DIR" "$@"
 }
