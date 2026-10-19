@@ -573,6 +573,10 @@ Background Git cannot request credentials. Authentication errors include the
 failed Git stage and guidance to configure authentication in a terminal; a
 successful fetch does not clear a failed upload. See the plugin documentation
 for user-run GitHub CLI credential-helper setup when already authenticated.
+Explicit GitHub workflow-permission refusals preserve local commits and explain
+how to grant access in a terminal. For an existing GitHub CLI OAuth login, run
+`rtk gh auth refresh --hostname github.com --scopes workflow`, approve access,
+then retry **Subir**. The plugin never changes credentials or scopes.
 
 See [omasync/README.md](omasync/README.md) for settings, safety guarantees,
 AI recovery, removal, and validation limits. The shared engine supports Linux

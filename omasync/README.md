@@ -127,6 +127,19 @@ Then retry **Subir**. A successful fetch (for example, from a public repository)
 does not establish permission to push and does not clear an unresolved upload
 or AI failure. Successful synchronization clears its saved error metadata.
 
+If GitHub refuses to create or update a workflow because the login lacks
+workflow access, omasync reports **GitHub workflow permission required** and
+keeps the local commits for retry. With an existing GitHub CLI OAuth login,
+run `rtk gh auth refresh --hostname github.com --scopes workflow` yourself in
+a terminal, approve the requested access, then retry **Subir**. Personal access
+tokens and GitHub Apps require the corresponding workflow permission through
+their own authorization settings. The plugin never changes credentials or
+requests additional scopes. This category applies only to GitHub's explicit
+workflow-permission refusal; unrelated exit 1 failures retain their own error.
+A push dry-run cannot verify GitHub's server-side workflow authorization.
+The local-changes label describes the checkout; the failure appears under
+**Requiere atención**. Untracked files outside `ai/` are left untouched by upload.
+
 The read-only `io.github.pablousx.omasync` IPC target exposes `diagnostics` for
 all live monitor instances: busy/checking flags, process-running flags, status
 and active action. It contains no paths, error text, logs or credentials and

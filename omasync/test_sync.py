@@ -308,10 +308,92 @@ TestCase {
             '    log.write(action + "\\n")\n'
             'if action == os.environ.get("GIT_FAILURE_ACTION"):\n'
             '    print(os.environ["GIT_FAILURE_DIAGNOSTIC"], file=sys.stderr)\n'
-            '    sys.exit(128)\n'
+            '    print(os.environ.get("GIT_FAILURE_OUTPUT", ""))\n'
+            '    sys.exit(int(os.environ.get("GIT_FAILURE_EXIT", "128")))\n'
             f'os.execv({shutil.which("git")!r}, ["git", *args])\n')
         (binary / "git").chmod(0o755)
         return str(binary) + os.pathsep + os.environ["PATH"]
+
+    def test_workflow_permission_refusal_preserves_commits_until_successful_retry(self):
+        path = self.mock_git_failure()
+        for actor, permission in (("an OAuth App", "`workflow` scope"),
+                                  ("a Personal Access Token", "`workflow` scope"),
+                                  ("a GitHub App", "`workflows` permission")):
+            for source in ("stderr", "porcelain"):
+                with self.subTest(actor=actor, source=source):
+                    (self.home / "git-calls").write_text("")
+                    remote_before = self.git("rev-parse", "@{upstream}")
+                    content = actor + source
+                    (self.repo / "tracked").write_text(content)
+                    refusal = (f"refusing to allow {actor} to create or update workflow "
+                               f"`.github/workflows/SECRET.yml` without {permission}")
+                    output = ("!\tHEAD:refs/heads/SECRET\t[remote rejected] (" + refusal + ")"
+                              if source == "porcelain" else "")
+                    diagnostic = ("remote: " + refusal + "\n" if source == "stderr" else "")
+                    diagnostic += "error: failed to push some refs to 'https://TOKEN_SECRET@example.invalid'"
+                    result = self.sync("upload", PATH=path, GIT_FAILURE_ACTION="push",
+                                       GIT_FAILURE_DIAGNOSTIC=diagnostic,
+                                       GIT_FAILURE_OUTPUT=output, GIT_FAILURE_EXIT="1")
+                    self.assertEqual(result.returncode, 1, result.stderr)
+                    state = self.state()
+                    self.assertEqual(state["error_reason"], "workflow_permission")
+                    self.assertIn("git push: GitHub workflow permission required (exit 1)", state["error"])
+                    self.assertIn("terminal, then retry", state["error"])
+                    self.assertEqual(state["operation"], "up")
+                    self.assertEqual(self.git("show", "HEAD:tracked"), content)
+                    head = self.git("rev-parse", "HEAD")
+                    self.assertEqual(self.git("rev-parse", "@{upstream}"), remote_before)
+                    self.assertEqual(self.git("status", "--porcelain"), "")
+                    calls = (self.home / "git-calls").read_text().splitlines()
+                    self.assertEqual(calls.count("push"), 1)
+                    self.assertNotIn("fetch", calls)
+                    self.assertNotIn("rebase", calls)
+                    self.assertEqual(self.git("for-each-ref", "refs/omasync/pre-rebase/"), "")
+                    self.assertEqual(self.sync("check").returncode, 0)
+                    self.assertEqual(self.state()["error"], state["error"])
+                    self.assertEqual(self.state()["error_reason"], "workflow_permission")
+                    self.assertEqual(self.git("rev-parse", "HEAD"), head)
+                    with mock.patch.dict(os.environ, self.env):
+                        prompt = sync_module.Engine(self.repo).prompt()
+                    persisted = (self.repo / ".git/omasync-state.json").read_text()
+                    for evidence in (persisted, prompt, result.stdout, result.stderr):
+                        for secret in ("SECRET", "https://", ".github/workflows/"):
+                            self.assertNotIn(secret, evidence)
+                    self.assertEqual(self.sync("upload").returncode, 0)
+                    state = self.state()
+                    self.assertEqual(state["error"], "")
+                    self.assertEqual(state["error_reason"], "")
+                    self.assertEqual(self.git("rev-parse", "HEAD"), head)
+                    self.assertEqual(self.git("rev-parse", "@{upstream}"), head)
+
+    def test_workflow_mentions_and_generic_exit1_do_not_imply_permission_refusal(self):
+        path = self.mock_git_failure()
+        for diagnostic in ("remote: workflow validation failed: SECRET",
+                           "remote: permission denied for workflow SECRET",
+                           "remote: refusing to allow an OAuth App to update branch SECRET",
+                           "error: failed to push some refs to SECRET"):
+            with self.subTest(diagnostic=diagnostic):
+                (self.home / "git-calls").write_text("")
+                result = self.sync("upload", PATH=path, GIT_FAILURE_ACTION="push",
+                                   GIT_FAILURE_DIAGNOSTIC=diagnostic, GIT_FAILURE_EXIT="1")
+                self.assertEqual(result.returncode, 1)
+                state = self.state()
+                self.assertNotEqual(state["error_reason"], "workflow_permission")
+                self.assertIn("exit 1", state["error"])
+                self.assertNotIn("SECRET", result.stdout + result.stderr)
+                calls = (self.home / "git-calls").read_text().splitlines()
+                self.assertEqual(calls.count("push"), 1)
+                self.assertNotIn("fetch", calls)
+                self.assertNotIn("rebase", calls)
+
+    def test_workflow_refusal_is_classified_only_for_push(self):
+        result = self.sync("check", PATH=self.mock_git_failure(), GIT_FAILURE_ACTION="fetch",
+                           GIT_FAILURE_DIAGNOSTIC=("remote: refusing to allow an OAuth App to create "
+                                                   "or update workflow `SECRET` without `workflow` scope"),
+                           GIT_FAILURE_EXIT="1")
+        self.assertEqual(result.returncode, 1)
+        self.assertNotEqual(json.loads(result.stdout)["error_reason"], "workflow_permission")
+        self.assertNotIn("SECRET", result.stdout + result.stderr)
 
     def test_noninteractive_auth_diagnostics_preserve_push_failure_until_retry(self):
         path = self.mock_git_failure()

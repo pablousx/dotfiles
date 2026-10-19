@@ -5,6 +5,7 @@ from datetime import date, datetime, timezone
 import fcntl
 import json
 import os
+import re
 import signal
 from pathlib import Path
 import subprocess
@@ -82,8 +83,23 @@ class Engine:
                         "[rejected] (fetch first)", "[rejected] (non-fast-forward)")
                     for line in (output or "").splitlines()):
                 category, reason = "remote branch advanced", "remote_advanced"
+            if stage == "git push":
+                # GitHub's receive hook reports missing workflow authorization
+                # only on an actual push. Inspect its canonical refusal, never
+                # save remote text or infer permissions from an exit code.
+                summaries = [line.rsplit("\t", 1)[-1] for line in (output or "").splitlines()
+                             if line.startswith("!\t")]
+                evidence = diagnostic + "\n" + "\n".join(summaries).lower()
+                if re.search(
+                        r"refusing to allow (?:(?:an oauth app|a personal access token) "
+                        r"to create or update workflow [^\r\n]+ without [`'\"]workflow[`'\"] scope"
+                        r"|a github app to create or update workflow [^\r\n]+ "
+                        r"without [`'\"]workflows[`'\"] permission)", evidence):
+                    category, reason = "GitHub workflow permission required", "workflow_permission"
             advice = ("configure Git authentication in a terminal, then retry; "
                       "background sync cannot request credentials" if reason == "authentication"
+                      else "grant workflow access to your GitHub login in a terminal, then retry"
+                      if reason == "workflow_permission"
                       else "inspect locally, then retry")
             raise SyncError(f"{stage}: {category} (exit {process.returncode}); {advice}", reason)
         return output or ""
