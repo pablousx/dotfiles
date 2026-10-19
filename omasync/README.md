@@ -50,6 +50,12 @@ Optional `repository` overrides the recorded absolute checkout path. The
 lightweight local status reader runs every two seconds; remote fetches occur
 at startup and at the configured interval. Multiple monitors share a Git
 common-directory lock, so overlapping checks skip safely.
+Local status readers share a read lock and can run concurrently across monitors;
+only a writer reports an active synchronization. The UI keeps the last known
+commit counts while a writer holds the lock and refreshes status immediately
+after an operation completes. Remote checks, uploads and downloads have distinct
+busy labels. A failed status reader becomes a retryable error instead of leaving
+the UI marked as synchronizing.
 
 ## Behavior
 
@@ -97,12 +103,34 @@ them. AI generation pending after an interruption is also an error. AI output
 is never imported back into source or overwritten outside existing Rulesync
 guards. Machines without the existing AI opt-in marker skip generation.
 
-Background commands use noninteractive Git authentication, BatchMode SSH by
-default, and a 90-second timeout per subprocess. Timeout terminates the
+Background commands use noninteractive Git authentication and BatchMode SSH by
+default. Passive checks and local status commands have a 15-second timeout per
+subprocess; explicit synchronization and opted-in automatic downloads retain
+the 90-second timeout. Timeout terminates the
 background process group before releasing the lock. Errors retain only stage,
 safe category and exit code; no dialogs or notifications recur. Later checks
 retry connectivity. Existing SSH command overrides still apply. Configure
 authentication separately in a terminal; omasync never edits credentials.
+Missing HTTPS username/password or rejected authentication is reported as
+**authentication required**, with the Git stage and exit code, instead of an
+unexplained exit 128. Network failures retain a separate category; exit 128
+alone does not prove an authentication failure. Only safe categories are
+saved or passed to AI, never Git stderr, remote URLs or tokens.
+
+For GitHub HTTPS remotes, if GitHub CLI is already installed and `gh auth status`
+confirms a valid login, you can explicitly connect Git to that login in your
+terminal with `rtk gh auth setup-git --hostname github.com`. This user-run
+command changes Git's credential-helper configuration; omasync never runs it.
+For other hosts or SSH, configure the appropriate Git authentication yourself
+using the host's instructions. No tool is installed or configured by the plugin.
+Then retry **Subir**. A successful fetch (for example, from a public repository)
+does not establish permission to push and does not clear an unresolved upload
+or AI failure. Successful synchronization clears its saved error metadata.
+
+The read-only `io.github.pablousx.omasync` IPC target exposes `diagnostics` for
+all live monitor instances: busy/checking flags, process-running flags, status
+and active action. It contains no paths, error text, logs or credentials and
+does not run synchronization or alter state.
 
 ## Resolver con AI
 
@@ -139,7 +167,11 @@ system service, macOS automation or scheduler is installed.
 `python3 omasync/test_sync.py` uses temporary homes, real disposable local Git
 remotes and mocked Omarchy/Rulesync commands. `make check` includes it alongside
 the existing AI conflict-protection tests. Never install or activate the actual
-plugin to run tests. Manifest validation is read-only:
+plugin to run tests. When Qt's `qmltestrunner` is available, an offscreen fixture
+executes the widget's production status-update functions with fake processes
+to check counts and reader recovery; otherwise this test is explicitly skipped.
+The fixture does not validate live Process signals, rendering or multi-monitor IPC.
+Manifest validation is read-only:
 `omarchy plugin validate ./omasync`. QML can be checked with Qt's `qmllint`
 and an import root exposing the installed shell as `qs`; dynamic shell/Loader
 properties may produce type warnings. Live rendering, keyboard navigation,

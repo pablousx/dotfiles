@@ -15,7 +15,7 @@ UI.Panel {
     readonly property var snapshot: hostWidget ? hostWidget.snapshot : ({})
     readonly property bool busy: hostWidget ? hostWidget.busy : true
     readonly property bool hasError: snapshot.status === "error"
-    readonly property string stateLabel: busy ? "Sincronizando" : hostWidget ? hostWidget.label : "Conectando…"
+    readonly property string stateLabel: busy && hostWidget ? hostWidget.busyLabel : hostWidget ? hostWidget.label : "Conectando…"
     readonly property string aiLabel: ({applied: "Aplicada", disabled: "No activada en este equipo",
         pending: "Pendiente de aplicar", failed: "No se pudo aplicar", unknown: "Sin comprobar"})[snapshot.ai] || "Sin comprobar"
     readonly property string errorText: {
@@ -126,12 +126,12 @@ UI.Panel {
                     }
                     UiText {
                         Layout.fillWidth: true
-                        text: root.busy ? "Comprobando el estado…" : root.snapshot.dirty ? "Cambios locales sin guardar" : "Directorio de trabajo limpio"
+                        text: root.busy && root.hostWidget ? root.hostWidget.busyLabel : root.snapshot.dirty ? "Cambios locales sin guardar" : "Directorio de trabajo limpio"
                     }
                     RowLayout {
                         Layout.fillWidth: true
-                        UiText { Layout.fillWidth: true; text: "Por subir: " + (root.snapshot.ahead || 0); secondary: true }
-                        UiText { text: "Por descargar: " + (root.snapshot.behind || 0); secondary: true }
+                        UiText { Layout.fillWidth: true; text: "Por subir: " + (root.snapshot.ahead === undefined ? "…" : root.snapshot.ahead); secondary: true }
+                        UiText { text: "Por descargar: " + (root.snapshot.behind === undefined ? "…" : root.snapshot.behind); secondary: true }
                     }
                     RowLayout {
                         Layout.fillWidth: true

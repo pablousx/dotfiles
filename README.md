@@ -566,6 +566,13 @@ omadocs styling and includes an **Ajustes** tab. Checks default to five minutes;
 automatic download is off. The panel distinguishes a successful Git update
 from failure to apply AI. Network/authentication failures retry silently on
 later checks, without recurring dialogs.
+Status readers coexist across monitors, passive checks time out after 15 seconds
+per command, and the panel distinguishes checking remotes from uploading or
+downloading. It preserves known counts while busy and refreshes after completion.
+Background Git cannot request credentials. Authentication errors include the
+failed Git stage and guidance to configure authentication in a terminal; a
+successful fetch does not clear a failed upload. See the plugin documentation
+for user-run GitHub CLI credential-helper setup when already authenticated.
 
 See [omasync/README.md](omasync/README.md) for settings, safety guarantees,
 AI recovery, removal, and validation limits. The shared engine supports Linux

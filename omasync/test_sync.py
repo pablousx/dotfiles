@@ -3,12 +3,14 @@
 import fcntl
 from datetime import datetime, timezone
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
+import time
 import unittest
 from unittest import mock
 
@@ -120,6 +122,136 @@ class SyncTests(RepositoryCommands):
             self.assertEqual(json.loads(self.sync("tick", "--auto-download").stdout)["status"], "syncing")
         self.assertEqual(self.sync("download").returncode, 0)
 
+    def test_status_readers_share_lock_without_false_syncing_or_writes(self):
+        self.sync("download")
+        state_path = self.repo / ".git/omasync-state.json"
+        before = state_path.read_bytes()
+        with (self.repo / ".git/omasync.lock").open("a") as lock:
+            fcntl.flock(lock, fcntl.LOCK_SH | fcntl.LOCK_NB)
+            readers = [subprocess.Popen(
+                [sys.executable, str(self.repo / "omasync/sync.py"), "--repo", str(self.repo), "status"],
+                env=self.env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) for _ in range(2)]
+            for reader in readers:
+                stdout, stderr = reader.communicate(timeout=5)
+                self.assertEqual(reader.returncode, 0, stderr)
+                self.assertEqual(json.loads(stdout)["status"], "updated")
+            self.assertEqual(json.loads(self.sync("tick").stdout)["status"], "syncing")
+            self.assertNotEqual(self.sync("upload").returncode, 0)
+            self.assertEqual(state_path.read_bytes(), before)
+
+    def test_passive_fetch_timeout_kills_group_releases_lock_and_can_retry(self):
+        binary = self.repo.parent / "bin"
+        binary.mkdir()
+        child = ('import os, time; from pathlib import Path; '
+                 'time.sleep(0.8); Path(os.environ["HOME"], "child-survived").touch()')
+        (binary / "git").write_text(
+            '#!' + sys.executable + '\nimport os, subprocess, sys, time\n'
+            'from pathlib import Path\nargs = sys.argv[1:]\n'
+            'if args[:1] == ["-C"] and args[2] == "fetch":\n'
+            f'    subprocess.Popen([sys.executable, "-c", {child!r}])\n'
+            '    Path(os.environ["HOME"], "fetch-started").touch()\n'
+            '    time.sleep(60)\n'
+            f'os.execv({shutil.which("git")!r}, ["git", *args])\n')
+        (binary / "git").chmod(0o755)
+        output = io.StringIO()
+        with mock.patch.dict(os.environ, dict(self.env, PATH=str(binary) + os.pathsep + os.environ["PATH"])), \
+                mock.patch.object(sys, "argv", ["sync.py", "--repo", str(self.repo), "check"]), \
+                mock.patch.object(sync_module, "PASSIVE_TIMEOUT", 0.3), \
+                mock.patch.object(sys, "stdout", output):
+            started = time.monotonic()
+            self.assertEqual(sync_module.main(), 1)
+            self.assertLess(time.monotonic() - started, 3)
+        self.assertTrue((self.home / "fetch-started").exists())
+        self.assertIn("git fetch: timeout", json.loads(output.getvalue())["error"])
+        with (self.repo / ".git/omasync.lock").open("a") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        time.sleep(0.9)
+        self.assertFalse((self.home / "child-survived").exists())
+        self.assertEqual(self.sync("check").returncode, 0)
+        self.assertEqual(self.state()["status"], "updated")
+
+    def test_manual_operations_keep_normal_timeout(self):
+        with mock.patch.dict(os.environ, self.env):
+            self.assertEqual(sync_module.Engine(self.repo).command_timeout, 90)
+
+    def test_qml_status_updates_keep_counts_and_recover_from_reader_failure(self):
+        runner = shutil.which("qmltestrunner") or \
+            ("/usr/lib/qt6/bin/qmltestrunner" if Path("/usr/lib/qt6/bin/qmltestrunner").exists() else None)
+        if runner is None:
+            self.skipTest("Qt qmltestrunner unavailable; live shell validation still required")
+        source = (ROOT / "omasync/BarWidget.qml").read_text()
+        functions = []
+        for name in ("acceptSnapshot", "readStatus", "finishStatus"):
+            start = source.index("    function " + name + "(")
+            end = source.index("\n    }", start) + len("\n    }")
+            functions.append(source[start:end])
+        tests = self.repo.parent / "qmltests"
+        tests.mkdir()
+        # Execute the production QML functions using fake process objects, never
+        # the actual widget/timers/shell or any real Git operation.
+        (tests / "tst_Status.qml").write_text('''import QtQuick
+import QtTest
+TestCase {
+    id: tests
+    name: "StatusSnapshots"
+    when: true
+    Item {
+        id: root
+        property var snapshot: ({status: "unknown"})
+        property string launcherError: ""
+        property string repo: "fixture"
+        property bool refreshPending: false
+        function argv(action) { return ["mock", action] }
+        QtObject { id: reader; property bool running: false; property var command: [] }
+''' + "\n".join(functions) + '''
+    }
+    function init() {
+        root.launcherError = ""
+        root.refreshPending = false
+        root.snapshot = {status: "local", ahead: 7, behind: 2, dirty: true}
+        reader.running = false
+    }
+    function test_busy_keeps_counts_then_full_snapshot_replaces_them() {
+        root.acceptSnapshot({status: "syncing", busy_operation: "check"})
+        compare(root.snapshot.ahead, 7)
+        compare(root.snapshot.behind, 2)
+        root.finishStatus(0, JSON.stringify({status: "updated", ahead: 0, behind: 0, dirty: false}))
+        compare(root.snapshot.status, "updated")
+        compare(root.snapshot.ahead, 0)
+        compare(root.snapshot.behind, 0)
+    }
+    function test_reader_failure_unsticks_syncing_and_recovers() {
+        root.snapshot = {status: "syncing", ahead: 7}
+        root.finishStatus(1, "")
+        compare(root.snapshot.status, "error")
+        compare(root.snapshot.ahead, 7)
+        root.finishStatus(0, "broken JSON")
+        compare(root.snapshot.status, "error")
+        root.snapshot = {status: "syncing"}
+        root.finishStatus(0, "{}")
+        compare(root.snapshot.status, "error")
+        root.finishStatus(0, JSON.stringify({status: "local", ahead: 7, error: ""}))
+        compare(root.snapshot.status, "local")
+        compare(root.snapshot.error, "")
+    }
+    function test_worker_completion_during_read_queues_immediate_refresh() {
+        reader.running = true
+        root.readStatus()
+        verify(root.refreshPending)
+        reader.running = false
+        root.finishStatus(0, JSON.stringify({status: "syncing"}))
+        tryCompare(reader, "running", true)
+        compare(root.refreshPending, false)
+        compare(reader.command[1], "status")
+    }
+}
+''')
+        result = subprocess.run([runner, "-input", str(tests), "-platform", "offscreen"],
+                                env=dict(self.env, QSG_RHI_BACKEND="software", QML_DISABLE_DISK_CACHE="1",
+                                         QT_QPA_PLATFORMTHEME="", QT_QUICK_CONTROLS_STYLE="Basic"),
+                                text=True, capture_output=True, timeout=15)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_interactive_upload_holds_lock_while_waiting_for_message(self):
         import time
         process = subprocess.Popen(
@@ -163,6 +295,108 @@ class SyncTests(RepositoryCommands):
         self.git("remote", "set-url", "origin", remote)
         self.assertEqual(self.sync("check").returncode, 0)
         self.assertEqual(self.state()["status"], "updated")
+
+    def mock_git_failure(self):
+        """Real local Git except one selected operation, with realistic stderr."""
+        binary = self.repo.parent / "bin"
+        binary.mkdir(exist_ok=True)
+        (binary / "git").write_text(
+            '#!' + sys.executable + '\nimport os, sys\nfrom pathlib import Path\n'
+            'args = sys.argv[1:]\n'
+            'action = args[2] if args[:1] == ["-C"] else args[0]\n'
+            'with Path(os.environ["HOME"], "git-calls").open("a") as log:\n'
+            '    log.write(action + "\\n")\n'
+            'if action == os.environ.get("GIT_FAILURE_ACTION"):\n'
+            '    print(os.environ["GIT_FAILURE_DIAGNOSTIC"], file=sys.stderr)\n'
+            '    sys.exit(128)\n'
+            f'os.execv({shutil.which("git")!r}, ["git", *args])\n')
+        (binary / "git").chmod(0o755)
+        return str(binary) + os.pathsep + os.environ["PATH"]
+
+    def test_noninteractive_auth_diagnostics_preserve_push_failure_until_retry(self):
+        path = self.mock_git_failure()
+        diagnostics = (
+            "fatal: could not read Username for 'https://SECRET@example.invalid': terminal prompts disabled",
+            "fatal: could not read Password for 'https://SECRET@example.invalid': No such device or address",
+            "fatal: Authentication failed for 'https://SECRET@example.invalid/repo'",
+            "remote: HTTP Basic: Access denied. SECRET",
+            "remote: Invalid username or token. SECRET",
+        )
+        for diagnostic in diagnostics:
+            with self.subTest(diagnostic=diagnostic):
+                (self.home / "git-calls").write_text("")
+                before = self.git("rev-parse", "HEAD")
+                result = self.sync("upload", PATH=path, GIT_FAILURE_ACTION="push",
+                                   GIT_FAILURE_DIAGNOSTIC=diagnostic)
+                self.assertEqual(result.returncode, 1, result.stderr)
+                state = self.state()
+                self.assertEqual(state["error_reason"], "authentication")
+                self.assertIn("git push: authentication required (exit 128)", state["error"])
+                self.assertIn("terminal", state["error"])
+                calls = (self.home / "git-calls").read_text().splitlines()
+                self.assertEqual(calls.count("push"), 1)
+                self.assertNotIn("fetch", calls)
+                self.assertNotIn("rebase", calls)
+                self.assertEqual(self.git("rev-parse", "HEAD"), before)
+                self.assertEqual(self.git("for-each-ref", "refs/omasync/pre-rebase/"), "")
+                self.assertEqual(self.sync("check").returncode, 0)
+                self.assertEqual(self.state()["error"], state["error"])
+                self.assertEqual(self.state()["error_reason"], "authentication")
+                with mock.patch.dict(os.environ, self.env):
+                    prompt = sync_module.Engine(self.repo).prompt()
+                persisted = (self.repo / ".git/omasync-state.json").read_text()
+                for evidence in (persisted, prompt, result.stdout, result.stderr):
+                    self.assertNotIn("SECRET", evidence)
+                    self.assertNotIn("https://", evidence)
+                self.assertEqual(self.sync("upload").returncode, 0)
+                state = self.state()
+                self.assertEqual(state["error"], "")
+                self.assertEqual(state["error_reason"], "")
+                persisted = json.loads((self.repo / ".git/omasync-state.json").read_text())
+                self.assertEqual(persisted["check_error_reason"], "")
+
+    def test_network_and_generic_exit128_are_not_authentication(self):
+        path = self.mock_git_failure()
+        for diagnostic, reason in (
+                ("fatal: unable to access 'https://SECRET': Could not resolve host: example.invalid", "network"),
+                ("fatal: unable to access 'https://SECRET': Failed to connect to server", "network"),
+                ("fatal: unable to access 'https://SECRET': server returned error: 500", "network_access"),
+                ("fatal: bad object SECRET", "")):
+            with self.subTest(reason=reason):
+                result = self.sync("check", PATH=path, GIT_FAILURE_ACTION="fetch",
+                                   GIT_FAILURE_DIAGNOSTIC=diagnostic)
+                self.assertEqual(result.returncode, 1)
+                state = json.loads(result.stdout)
+                self.assertEqual(state["error_reason"], reason)
+                self.assertNotIn("authentication", state["error"])
+                self.assertIn("git fetch:", state["error"])
+                self.assertIn("exit 128", state["error"])
+                self.assertNotIn("SECRET", result.stdout + result.stderr)
+                self.assertEqual(self.sync("check").returncode, 0)
+                self.assertEqual(self.state()["error_reason"], "")
+                self.assertEqual(self.state()["error"], "")
+
+    def test_fetch_auth_failure_and_successful_download_clear_metadata(self):
+        result = self.sync("check", PATH=self.mock_git_failure(), GIT_FAILURE_ACTION="fetch",
+                           GIT_FAILURE_DIAGNOSTIC="fatal: could not read Username: terminal prompts disabled")
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(json.loads(result.stdout)["error_reason"], "authentication")
+        self.assertEqual(self.sync("download").returncode, 0)
+        persisted = json.loads((self.repo / ".git/omasync-state.json").read_text())
+        for key in ("error", "error_reason", "check_error", "check_error_reason"):
+            self.assertEqual(persisted[key], "")
+
+    def test_legacy_state_without_reason_remains_visible_after_check(self):
+        (self.repo / ".git/omasync-state.json").write_text(json.dumps(
+            {"operation": "up", "error": "git push: command failed (exit 128); inspect locally, then retry",
+             "ai": "failed", "repo_updated": True}))
+        self.assertEqual(self.sync("check").returncode, 0)
+        state = self.state()
+        self.assertEqual(state["status"], "error")
+        self.assertEqual(state["operation"], "up")
+        self.assertEqual(state["error_reason"], "")
+        self.assertEqual(state["ai"], "failed")
+        self.assertTrue(state["repo_updated"])
 
     def mock_omarchy(self, supports_prompt=True):
         binary = self.repo.parent / "bin"

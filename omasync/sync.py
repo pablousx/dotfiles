@@ -13,6 +13,9 @@ import tempfile
 import uuid
 
 
+PASSIVE_TIMEOUT = 15
+
+
 class SyncError(Exception):
     def __init__(self, message, reason=""):
         super().__init__(message)
@@ -20,8 +23,9 @@ class SyncError(Exception):
 
 
 class Engine:
-    def __init__(self, repo):
+    def __init__(self, repo, command_timeout=90):
         self.repo = Path(repo).resolve()
+        self.command_timeout = command_timeout
         self.env = dict(os.environ, GIT_TERMINAL_PROMPT="0", GCM_INTERACTIVE="never",
                         SSH_ASKPASS="/bin/false")
         self.env.setdefault("GIT_SSH_COMMAND", "ssh -oBatchMode=yes -oConnectTimeout=15")
@@ -40,7 +44,7 @@ class Engine:
                 start_new_session=not interactive,
                 pass_fds=(self.lock_fd,) if hasattr(self, "lock_fd") else ())
             try:
-                output, stderr = process.communicate(timeout=None if interactive else 90)
+                output, stderr = process.communicate(timeout=None if interactive else self.command_timeout)
             except subprocess.TimeoutExpired as error:
                 os.killpg(process.pid, signal.SIGKILL)
                 process.communicate()
@@ -53,16 +57,24 @@ class Engine:
             category = "command failed"
             reason = ""
             diagnostic = (stderr or "").lower()
-            for phrase, label in (("authentication failed", "authentication failed"),
-                                  ("permission denied", "authentication/access denied"),
-                                  ("could not resolve", "network unavailable"),
-                                  ("unable to access", "network/access failure"),
-                                  ("not possible to fast-forward", "diverged history"),
-                                  ("content conflict", "local AI content conflict"),
-                                  ("rejected", "remote rejected update")):
-                if phrase in diagnostic:
-                    category = label
-                    break
+            if stage.startswith("git ") and any(phrase in diagnostic for phrase in (
+                    "could not read username", "could not read password",
+                    "terminal prompts disabled", "authentication failed",
+                    "invalid username or password", "invalid username or token",
+                    "http basic: access denied", "permission denied (publickey")):
+                category, reason = "authentication required", "authentication"
+            else:
+                for phrase, label, code in (
+                        ("permission denied", "authentication/access denied", "access_denied"),
+                        ("could not resolve", "network unavailable", "network"),
+                        ("failed to connect", "network unavailable", "network"),
+                        ("unable to access", "network/access failure", "network_access"),
+                        ("not possible to fast-forward", "diverged history", ""),
+                        ("content conflict", "local AI content conflict", ""),
+                        ("rejected", "remote rejected update", "")):
+                    if phrase in diagnostic:
+                        category, reason = label, code
+                        break
             # Push porcelain distinguishes a stale remote branch from network,
             # authentication and server-hook failures. Never rebase on those.
             if stage == "git push" and any(
@@ -70,8 +82,10 @@ class Engine:
                         "[rejected] (fetch first)", "[rejected] (non-fast-forward)")
                     for line in (output or "").splitlines()):
                 category, reason = "remote branch advanced", "remote_advanced"
-            raise SyncError(f"{stage}: {category} (exit {process.returncode}); "
-                            "inspect locally, then retry", reason)
+            advice = ("configure Git authentication in a terminal, then retry; "
+                      "background sync cannot request credentials" if reason == "authentication"
+                      else "inspect locally, then retry")
+            raise SyncError(f"{stage}: {category} (exit {process.returncode}); {advice}", reason)
         return output or ""
 
     def git(self, *args):
@@ -111,6 +125,8 @@ class Engine:
                     operation=("check" if self.state.get("check_error") and not self.state.get("error")
                                else self.state.get("operation", "")),
                     error=self.state.get("error", "") or self.state.get("check_error", ""),
+                    error_reason=(self.state.get("error_reason", "") if self.state.get("error")
+                                  else self.state.get("check_error_reason", "")),
                     status=("error" if (self.state.get("error") or self.state.get("check_error") or
                                         in_progress or self.state.get("ai") in ("pending", "failed")) else
                             "local" if dirty or ahead else "remote" if behind else
@@ -159,7 +175,7 @@ class Engine:
         # Persist before generation, including when generation is interrupted.
         self.save(repo_updated=updated or self.state.get("repo_updated", False))
         self.sync_ai(interactive)
-        self.save(error="", check_error="", repo_updated=False)
+        self.save(error="", error_reason="", check_error="", check_error_reason="", repo_updated=False)
 
     def upload(self, interactive=True):
         self.require_idle_git()
@@ -182,7 +198,7 @@ class Engine:
         else:
             print("No tracked changes to commit.")
         self.push(branch, interactive)
-        self.save(error="", check_error="", repo_updated=False)
+        self.save(error="", error_reason="", check_error="", check_error_reason="", repo_updated=False)
 
     def push(self, branch, interactive):
         refspec = f"HEAD:refs/heads/{branch}"
@@ -260,7 +276,8 @@ def main():
                                          "resolve", "resolve-inline"])
     parser.add_argument("--auto-download", action="store_true")
     args = parser.parse_args()
-    engine = Engine(args.repo)
+    engine = Engine(args.repo, command_timeout=PASSIVE_TIMEOUT if args.action in (
+        "status", "check", "tick") else 90)
     if args.action == "resolve":
         engine.resolve()
         return 0
@@ -273,7 +290,8 @@ def main():
     # Python flock works on Linux/macOS. Never unlink this shared lock inode.
     with (engine.common / "omasync.lock").open("a") as lock:
         try:
-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            mode = fcntl.LOCK_SH if args.action == "status" else fcntl.LOCK_EX
+            fcntl.flock(lock, mode | fcntl.LOCK_NB)
         except BlockingIOError:
             if args.action in ("status", "check", "tick"):
                 print(json.dumps(dict(engine.read_state(), status="syncing")))
@@ -284,6 +302,7 @@ def main():
         failed = False
         if args.action != "status":
             operation = {"up": "up", "upload": "up", "down": "down", "download": "down"}.get(args.action, "check")
+            engine.save(busy_operation=operation)
             try:
                 if args.action in ("up", "upload"):
                     engine.save(operation=operation)
@@ -297,17 +316,20 @@ def main():
                     if args.action == "tick" and args.auto_download and (
                             state["behind"] or state["ai"] in ("pending", "failed")):
                         operation = "auto-down"
-                        engine.save(operation=operation)
+                        engine.command_timeout = 90
+                        engine.save(operation=operation, busy_operation=operation)
                         engine.download(automatic=True)
-                    engine.save(check_error="")
+                    engine.save(check_error="", check_error_reason="")
             except SyncError as error:
                 failed = True
                 if operation == "check":
-                    engine.save(check_error=str(error))
+                    engine.save(check_error=str(error), check_error_reason=error.reason)
                 else:
-                    engine.save(operation=operation, error=str(error))
+                    engine.save(operation=operation, error=str(error), error_reason=error.reason)
                 if args.action in ("up", "down"):
                     print(str(error), file=sys.stderr)
+            finally:
+                engine.save(busy_operation="")
         if args.action in ("status", "check", "tick"):
             print(json.dumps(engine.snapshot()))
         return 1 if failed else 0
