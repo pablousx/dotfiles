@@ -2,6 +2,8 @@
 set -Eeuo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 temporary="$(mktemp -d)"
+# macOS temporary paths may contain symlinks; match installer physical paths.
+temporary="$(cd "$temporary" && pwd -P)"
 trap 'rm -rf "$temporary"' EXIT
 repo="$temporary/repo"
 mkdir -p "$repo" "$temporary/bin" "$temporary/empty-path" "$temporary/home"

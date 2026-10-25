@@ -2,6 +2,8 @@
 set -Eeuo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 TEMP_ROOT="$(mktemp -d)"
+# macOS temporary paths may contain symlinks; match installer physical paths.
+TEMP_ROOT="$(cd "$TEMP_ROOT" && pwd -P)"
 trap 'rm -rf "$TEMP_ROOT"' EXIT
 export HOME="$TEMP_ROOT/home"
 unset STARSHIP_CONFIG

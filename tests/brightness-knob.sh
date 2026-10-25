@@ -3,6 +3,8 @@ set -Eeuo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 temporary="$(mktemp -d)"
+# macOS temporary paths may contain symlinks; match installer physical paths.
+temporary="$(cd "$temporary" && pwd -P)"
 trap 'rm -rf "$temporary"' EXIT
 export HOME="$temporary/home"
 export XDG_CONFIG_HOME="$HOME/custom config"
