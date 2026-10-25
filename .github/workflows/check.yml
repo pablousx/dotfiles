@@ -39,7 +39,7 @@ jobs:
     container: archlinux:base
     steps:
       - name: Install validation tools
-        run: pacman -Syu --noconfirm --needed git bash zsh make diffutils starship fzf bash-completion libxkbcommon xkeyboard-config lua
+        run: pacman -Syu --noconfirm --needed git bash zsh make diffutils jq starship fzf bash-completion libxkbcommon xkeyboard-config lua
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Install pinned mise tools
         uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3

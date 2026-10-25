@@ -15,18 +15,27 @@ source "$REPO_ROOT/tests/fixtures/platform.sh"
 install_platform_fixture "$repo" "$TEMP_ROOT"
 printf 'DISABLE_ALIASES=true\n' > "$repo/.env"
 printf '# user content\nalias personal=true\n' > "$HOME/.bashrc"
+printf '# login profile content\nexport LOGIN_MARKER=true\n' > "$HOME/.bash_profile"
 cp "$HOME/.bashrc" "$TEMP_ROOT/original"
+cp "$HOME/.bash_profile" "$TEMP_ROOT/original-profile"
 
 bash "$repo/setup/bash-startup.sh" skip "$repo"
 cmp "$TEMP_ROOT/original" "$HOME/.bashrc"
+cmp "$TEMP_ROOT/original-profile" "$HOME/.bash_profile"
 bash "$repo/setup/bash-startup.sh" install "$repo"
 cp "$HOME/.bashrc" "$TEMP_ROOT/installed"
+cp "$HOME/.bash_profile" "$TEMP_ROOT/installed-profile"
 bash "$repo/setup/bash-startup.sh" install "$repo"
 cmp "$TEMP_ROOT/installed" "$HOME/.bashrc"
+cmp "$TEMP_ROOT/installed-profile" "$HOME/.bash_profile"
 [[ $(find "$HOME" -name '.bashrc.dotfiles-backup.*' | wc -l) -eq 1 ]]
+[[ $(find "$HOME" -name '.bash_profile.dotfiles-backup.*' | wc -l) -eq 1 ]]
 grep -q 'alias personal=true' "$HOME/.bashrc"
+grep -q 'environment.bash' "$HOME/.bash_profile"
+[[ $(bash --noprofile --norc -c 'source "$HOME/.bash_profile"; printf "%s" "$SWC_NATIVE_BINDING_CACHE"') == "$HOME/.cache/swc-native" ]]
 printf 'uninstall\n' | bash "$repo/uninstall.sh" --omarchy
 cmp "$TEMP_ROOT/original" "$HOME/.bashrc"
+cmp "$TEMP_ROOT/original-profile" "$HOME/.bash_profile"
 # Preserve symlink ownership and file mode through install/removal.
 mv "$HOME/.bashrc" "$HOME/bashrc-target"
 chmod 0600 "$HOME/bashrc-target"
@@ -38,12 +47,41 @@ cmp "$TEMP_ROOT/original" "$HOME/bashrc-target"
 [[ $(ls -l "$HOME/bashrc-target") == -rw-------* ]]
 rm "$HOME/.bashrc"
 mv "$HOME/bashrc-target" "$HOME/.bashrc"
+# Preserve the selected login profile's symlink and mode through install/removal.
+mv "$HOME/.bash_profile" "$HOME/bash-profile-target"
+chmod 0600 "$HOME/bash-profile-target"
+ln -s "$HOME/bash-profile-target" "$HOME/.bash_profile"
+bash "$repo/setup/bash-startup.sh" install "$repo" >/dev/null
+[[ -L "$HOME/.bash_profile" ]]
+bash "$repo/setup/bash-startup.sh" remove "$repo" >/dev/null
+cmp "$TEMP_ROOT/original-profile" "$HOME/bash-profile-target"
+[[ $(ls -l "$HOME/bash-profile-target") == -rw-------* ]]
+rm "$HOME/.bash_profile"
+mv "$HOME/bash-profile-target" "$HOME/.bash_profile"
+# Fall back to .profile when no Bash-specific login profile exists.
+mv "$HOME/.bash_profile" "$HOME/bash-profile-saved"
+printf '# portable login profile\n' > "$HOME/.profile"
+cp "$HOME/.profile" "$TEMP_ROOT/original-dot-profile"
+bash "$repo/setup/bash-startup.sh" install "$repo" >/dev/null
+[[ ! -e "$HOME/.bash_profile" ]]
+grep -q 'environment.bash' "$HOME/.profile"
+[[ $(sh -c '. "$HOME/.profile"; printf "%s" "$SWC_NATIVE_BINDING_CACHE"') == "$HOME/.cache/swc-native" ]]
+bash "$repo/setup/bash-startup.sh" remove "$repo" >/dev/null
+cmp "$TEMP_ROOT/original-dot-profile" "$HOME/.profile"
+rm "$HOME/.profile"
+mv "$HOME/bash-profile-saved" "$HOME/.bash_profile"
 # Malformed blocks must not swallow unrelated user content.
 printf '# >>> dotfiles omarchy >>>\nuser-data\n' > "$HOME/.bashrc"
 cp "$HOME/.bashrc" "$TEMP_ROOT/damaged"
 if bash "$repo/setup/bash-startup.sh" install "$repo" 2>/dev/null; then exit 1; fi
 cmp "$TEMP_ROOT/damaged" "$HOME/.bashrc"
 cp "$TEMP_ROOT/original" "$HOME/.bashrc"
+printf '# >>> dotfiles omarchy environment >>>\nuser-data\n' > "$HOME/.bash_profile"
+cp "$HOME/.bash_profile" "$TEMP_ROOT/damaged-profile"
+if bash "$repo/setup/bash-startup.sh" install "$repo" 2>/dev/null; then exit 1; fi
+cmp "$TEMP_ROOT/original" "$HOME/.bashrc"
+cmp "$TEMP_ROOT/damaged-profile" "$HOME/.bash_profile"
+cp "$TEMP_ROOT/original-profile" "$HOME/.bash_profile"
 
 # Mock package and tool installation separately.
 cat > "$TEMP_ROOT/bin/omarchy" <<'MOCK'

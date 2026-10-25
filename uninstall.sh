@@ -52,8 +52,15 @@ if [[ "$#" -eq 0 ]]; then
     printf '%s\n\n' "========================================"
     REMOVE_TOOLS="$(prompt_removal "Remove the managed mise tool configuration?")"
     REMOVE_PLUGINS="$(prompt_removal "Remove the local Antidote checkout?")"
-    if [[ -f "$HOME/.bashrc" ]] && grep -Fxq '# >>> dotfiles omarchy >>>' "$HOME/.bashrc"; then
-        REMOVE_OMARCHY="$(prompt_removal "Remove the marked Omarchy Bash startup block?")"
+    HAS_OMARCHY_STARTUP=false
+    for startup in "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.bash_login" "$HOME/.profile"; do
+        if [[ -f "$startup" ]] && { grep -Fxq '# >>> dotfiles omarchy >>>' "$startup" || grep -Fxq '# >>> dotfiles omarchy environment >>>' "$startup"; }; then
+            HAS_OMARCHY_STARTUP=true
+            break
+        fi
+    done
+    if [[ "$HAS_OMARCHY_STARTUP" == true ]]; then
+        REMOVE_OMARCHY="$(prompt_removal "Remove the marked Omarchy Bash startup blocks?")"
     fi
     if [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/hypr/input.lua" ]] &&
         grep -Fxq -- '-- >>> dotfiles keyboard >>>' "${XDG_CONFIG_HOME:-$HOME/.config}/hypr/input.lua"; then
@@ -90,7 +97,7 @@ fi
 printf '%s\n' "Requested removals:"
 [[ "$REMOVE_TOOLS" == true ]] && printf '%s\n' "  - managed mise tool configuration (installed tools retained)"
 [[ "$REMOVE_PLUGINS" == true ]] && printf '%s\n' "  - repository-local Antidote checkout"
-[[ "$REMOVE_OMARCHY" == true ]] && printf '%s\n' "  - marked Omarchy profile block in .bashrc (settings retained)"
+[[ "$REMOVE_OMARCHY" == true ]] && printf '%s\n' "  - marked Omarchy Bash startup blocks in .bashrc and the login profile (settings retained)"
 [[ "$REMOVE_KEYBOARD" == true ]] && printf '%s\n' "  - marked keyboard activation block in input.lua (layout files retained)"
 [[ "$REMOVE_BRIGHTNESS_KNOB" == true ]] &&
     printf '%s\n' "  - all-monitor brightness bindings, helpers, and restore service"

@@ -53,12 +53,17 @@ class RepositoryCommands(unittest.TestCase):
         marker.write_text("managed")
 
     def test_git_helper_uses_repository_and_preserves_arguments(self):
+        # macOS temporary directories also have symlinked paths (/var -> /private/var).
+        alias = self.repo.parent / "repository link"
+        alias.symlink_to(self.repo, target_is_directory=True)
+        self.repo = alias
+        self.env["DOTFILES_DIR"] = str(alias)
         result = subprocess.run(
             ["bash", "-c", 'source "$1"; shift; _dotfiles_git "$@"', "_",
              str(ROOT / "shared/repository.sh"), "rev-parse", "--show-toplevel"],
             cwd=self.home, env=self.env, text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stdout.strip(), str(self.repo))
+        self.assertEqual(Path(result.stdout.strip()).resolve(), self.repo.resolve())
         (self.repo / "file with spaces").write_text("tracked")
         result = subprocess.run(
             ["bash", "-c", 'source "$1"; shift; _dotfiles_git "$@"', "_",

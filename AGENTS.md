@@ -125,8 +125,11 @@ variables, installation behavior, or common commands change.
 - Runtime `modules/bash/` targets Omarchy Bash 5. Use stock Bash and existing
   Omarchy fzf/mise/zoxide/Starship initialization; do not add a shell framework.
 - `.env.omarchy` is user-owned and ignored. Its settings must not alter `.env`.
-- Only the marked `.bashrc` block belongs to the Bash installer/uninstaller.
-  Preserve other content, symlink targets, permissions, and backups.
+- The marked `.bashrc` integration block and marked active Bash login-profile
+  environment block belong to the Bash installer/uninstaller. Preserve other
+  content, symlink targets, permissions, and backups. Follow Bash login-file
+  precedence (`.bash_profile`, `.bash_login`, `.profile`) and derive the checkout
+  path at install time rather than assuming `$HOME/dotfiles`.
 - Preserve existing user/Omarchy commands and completions. New helpers have
   `df-` names; register short forms only if unused.
 - Keep `docs/omarchy-parity.md` aligned with the Zsh plugin manifest and helpers.

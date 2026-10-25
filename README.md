@@ -123,6 +123,12 @@ Omarchy's mise, zoxide, fzf, Bash completion, editor, and history configuration.
 It never changes the login shell. Its `--tools` selection shares the portable
 mise toolset.
 
+The shared `profiles/omarchy/bash/environment.bash` exports
+`SWC_NATIVE_BINDING_CACHE` to `$HOME/.cache/swc-native` for SWC native
+bindings. The Bash setup sources it from the active Bash login profile, so the
+setting is available to login shells even when they are noninteractive;
+`profiles/omarchy/bash/rc.bash` remains interactive-only.
+
 ```sh
 ./setup.sh --profile omarchy       # Interactive setup and final confirmation
 ./setup.sh --profile omarchy --help
@@ -147,11 +153,12 @@ the automatically detected profile. Existing automation that needs Zsh on
 Omarchy must pass `--profile zsh` explicitly. The Omarchy profile rejects
 Zsh-only flags such as `--zsh` and `--enable-plugins`.
 
-Setup backs up `.bashrc` and appends a guarded block after existing configuration.
-Repeated setup does not duplicate it. Keep subsequent personal overrides below
-the block. The repository does not rewrite Omarchy's packaged defaults or your
-Starship configuration. The uninstaller backs up `.bashrc` and removes only the
-marked block; local settings remain. If an Omarchy refresh replaces `.bashrc`,
+Setup backs up `.bashrc` and the active Bash login profile, then appends a
+guarded block to each after existing configuration. Repeated setup does not
+duplicate either block. Keep subsequent personal overrides below them. The
+repository does not rewrite Omarchy's packaged defaults or your Starship
+configuration. The uninstaller backs up both startup files and removes only the
+marked blocks; local settings remain. If an Omarchy refresh replaces `.bashrc`,
 rerun `--profile omarchy --bash` to restore the integration.
 
 Omarchy settings live in ignored `.env.omarchy`, independently of Zsh's `.env`:
