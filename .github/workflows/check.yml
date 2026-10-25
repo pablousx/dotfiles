@@ -48,4 +48,9 @@ jobs:
           working_directory: tools
           install_args: --locked
       - name: Check both shells and Omarchy 4.0.0.alpha startup contract
+        env:
+          # Tests change HOME; retain trust for this container-mounted checkout.
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: safe.directory
+          GIT_CONFIG_VALUE_0: ${{ github.workspace }}
         run: mise -C tools exec -- make -C .. check

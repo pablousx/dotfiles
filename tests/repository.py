@@ -14,7 +14,8 @@ class RepositoryCommands(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="dotfiles-repository-")
         self.addCleanup(self.temp.cleanup)
-        base = Path(self.temp.name)
+        # Use physical paths: macOS TMPDIR may pass through /var -> /private/var.
+        base = Path(self.temp.name).resolve()
         self.repo = base / "repo with spaces"
         self.home = base / "home"
         self.home.mkdir()
