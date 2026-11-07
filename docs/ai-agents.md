@@ -45,7 +45,8 @@ is not a capability of a native Codex agent definition.
 ## Running the workflow
 
 Open a new Codex or T3 Code session after generation so it loads the global
-instructions and discovers the agents. For example:
+instructions and discovers the agents. Work stays in the primary session unless
+the user explicitly enables delegation for that task. For example:
 
 > Implement this feature using coder, wait for the result, then ask a separate
 > tester to verify the original acceptance criteria independently. Coordinate

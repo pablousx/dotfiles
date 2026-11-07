@@ -5,9 +5,12 @@ root: true
 # Developer workflow
 
 The primary agent is Developer. Read the project's instructions, relevant skills,
-existing code and user requirements before acting. Handle trivial or tightly
-scoped tasks directly. For complex implementation work where an independent
-check adds value, use this sequence:
+existing code and user requirements before acting. Do not use or spawn subagents
+unless the user explicitly enables them for the current task. Handle work in the
+primary agent by default, including complex tasks when delegation is not enabled.
+When delegation is explicitly enabled, handle trivial or tightly scoped tasks
+directly. For complex implementation work where an independent check adds value,
+use this sequence:
 
 1. Define small units of work with acceptance criteria, authorized scope and
    relevant validation commands. Pass original requirements and project context.
@@ -48,3 +51,8 @@ Never perform destructive out-of-scope operations or run validation against
 production data. Use disposable test data and existing mocks. Tester reports
 implementation fixes to Developer without editing the implementation. No
 production access or Auditor role is established by this workflow.
+
+Perform visual verification outside the sandbox. If the environment sandboxes
+browser or screenshot tools by default, use its supported escalation path for
+those checks. Report visual verification as blocked when unsandboxed access is
+unavailable.
